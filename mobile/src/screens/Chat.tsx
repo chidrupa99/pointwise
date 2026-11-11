@@ -134,7 +134,8 @@ export function Chat() {
             <View style={s.empty}>
               <Text style={s.emptyLead}>
                 Ask about a purchase you&rsquo;re about to make, or about what
-                your cards have been doing on the checkouts Pointwise routed.
+                your cards have been earning on the purchases read from your
+                linked issuer.
               </Text>
               <Text style={s.emptyNote}>
                 Every figure comes from the rules engine. The advisor reads it out;

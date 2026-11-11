@@ -121,12 +121,12 @@ export function SignIn({ onSignedIn }: Props) {
           </Pressable>
         )}
 
-        {status && !status.paypal_login_available && (
-          <View style={s.notice}>
-            <Text style={s.noticeTitle}>PayPal sign-in is not set up</Text>
-            <Text style={s.noticeBody}>{status.paypal_login_hint}</Text>
-          </View>
-        )}
+        {/* No banner when PayPal sign-in is unconfigured. The hint behind it
+            names an env var and a dashboard setting -- it is addressed to
+            whoever is building this, not to the person holding the phone, and
+            nothing is broken from their side: the name fallback below opens
+            automatically and signs them in. `paypal_login_hint` is still on
+            /api/auth/status, which is where a developer should read it. */}
 
         {showFallback && (
           <View style={s.fallback}>
@@ -214,17 +214,6 @@ const styles = (t: Theme) =>
       alignItems: 'center',
     },
     paypalText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-
-    notice: {
-      backgroundColor: t.warnSoft,
-      borderRadius: 12,
-      borderLeftWidth: 3,
-      borderLeftColor: t.warn,
-      padding: 14,
-      gap: 4,
-    },
-    noticeTitle: { fontSize: 14, fontWeight: '700', color: t.warn },
-    noticeBody: { fontSize: 13, lineHeight: 19, color: t.inkSoft },
 
     fallback: { gap: 10 },
     label: { fontSize: 14, color: t.inkSoft, fontWeight: '600' },
