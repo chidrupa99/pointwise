@@ -1,0 +1,66 @@
+{
+  "_comment": [
+    "Plaid sandbox custom-user config: the statement the demo reads.",
+    "",
+    "Plaid's stock test institution returns five merchants repeated monthly,",
+    "twelve of them at exactly $500 -- a $500 order at KFC among them. The",
+    "figures Pointwise derives from that are arithmetically right and read as",
+    "nonsense, which costs the whole screen its credibility. This replaces it.",
+    "",
+    "Two rules shaped the merchant list. Most names are ones the merchant map",
+    "in category_tables.py already holds a real MCC for, so they resolve at",
+    "'known' confidence rather than leaning on the aggregator. A few are not,",
+    "on purpose: Zuni Cafe and Tartine resolve by keyword and the row says so",
+    "in italics. A demo that never shows the app admitting a guess hides the",
+    "part of the design worth showing.",
+    "",
+    "Plaid enriches these: it returns a personal_finance_category for each row",
+    "even though the config has no category field, and it rewrites some names",
+    "(Whole Foods Market -> Whole Foods). It returns no merchant_name, so the",
+    "description below is what the app matches on.",
+    "",
+    "Amounts are positive, which is how Plaid reports a card purchase.",
+    "Regenerate with: PYTHONPATH=src .venv/bin/python scripts/seed_plaid_demo.py"
+  ],
+  "version": 2,
+  "override_accounts": [
+    {
+      "_card": "amex-gold -- 4x dining, 4x grocery, 1x everything else",
+      "type": "credit",
+      "subtype": "credit card",
+      "starting_balance": 2184,
+      "transactions": [
+        { "date_transacted": "2026-11-09", "date_posted": "2026-11-10", "amount": 127.43, "description": "Whole Foods Market", "currency": "USD" },
+        { "date_transacted": "2026-11-07", "date_posted": "2026-11-08", "amount": 1199.00, "description": "Apple Store", "currency": "USD" },
+        { "date_transacted": "2026-11-05", "date_posted": "2026-11-06", "amount": 34.80, "description": "Shake Shack", "currency": "USD" },
+        { "date_transacted": "2026-11-02", "date_posted": "2026-11-03", "amount": 214.67, "description": "Costco Wholesale", "currency": "USD" },
+        { "date_transacted": "2026-10-28", "date_posted": "2026-10-29", "amount": 142.00, "description": "Zuni Cafe", "currency": "USD" },
+        { "date_transacted": "2026-10-24", "date_posted": "2026-10-25", "amount": 86.20, "description": "Trader Joe's", "currency": "USD" },
+        { "date_transacted": "2026-10-19", "date_posted": "2026-10-20", "amount": 612.00, "description": "Marriott", "currency": "USD" },
+        { "date_transacted": "2026-10-14", "date_posted": "2026-10-15", "amount": 96.50, "description": "Din Tai Fung", "currency": "USD" },
+        { "date_transacted": "2026-10-08", "date_posted": "2026-10-09", "amount": 349.99, "description": "Best Buy", "currency": "USD" },
+        { "date_transacted": "2026-10-02", "date_posted": "2026-10-03", "amount": 23.15, "description": "CVS Pharmacy", "currency": "USD" },
+        { "date_transacted": "2026-09-26", "date_posted": "2026-09-27", "amount": 118.75, "description": "Safeway", "currency": "USD" },
+        { "date_transacted": "2026-09-18", "date_posted": "2026-09-19", "amount": 61.30, "description": "Tartine Bakery", "currency": "USD" }
+      ]
+    },
+    {
+      "_card": "capital-one-venture-x -- 10x hotel, 5x airfare, 2x everything else",
+      "type": "credit",
+      "subtype": "credit card",
+      "starting_balance": 1047,
+      "transactions": [
+        { "date_transacted": "2026-11-08", "date_posted": "2026-11-09", "amount": 19.40, "description": "Chipotle", "currency": "USD" },
+        { "date_transacted": "2026-11-04", "date_posted": "2026-11-05", "amount": 427.60, "description": "United Airlines", "currency": "USD" },
+        { "date_transacted": "2026-10-30", "date_posted": "2026-10-31", "amount": 73.29, "description": "Amazon", "currency": "USD" },
+        { "date_transacted": "2026-10-26", "date_posted": "2026-10-27", "amount": 58.40, "description": "Shell", "currency": "USD" },
+        { "date_transacted": "2026-10-21", "date_posted": "2026-10-22", "amount": 389.00, "description": "Hilton", "currency": "USD" },
+        { "date_transacted": "2026-10-16", "date_posted": "2026-10-17", "amount": 64.88, "description": "Safeway", "currency": "USD" },
+        { "date_transacted": "2026-10-11", "date_posted": "2026-10-12", "amount": 28.75, "description": "Uber", "currency": "USD" },
+        { "date_transacted": "2026-10-05", "date_posted": "2026-10-06", "amount": 22.99, "description": "Netflix", "currency": "USD" },
+        { "date_transacted": "2026-09-29", "date_posted": "2026-09-30", "amount": 156.40, "description": "Home Depot", "currency": "USD" },
+        { "date_transacted": "2026-09-22", "date_posted": "2026-09-23", "amount": 44.10, "description": "Starbucks", "currency": "USD" }
+      ]
+    }
+  ]
+}

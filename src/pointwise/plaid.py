@@ -19,6 +19,7 @@ would mean.
 
 from __future__ import annotations
 
+import json
 import os
 from datetime import date
 from decimal import Decimal
@@ -40,6 +41,12 @@ HOSTS = {
 #: accounts and a month of transactions already attached, which is exactly the
 #: shape this app needs and saves putting a Link UI in front of a demo.
 SANDBOX_INSTITUTION = "ins_109508"
+
+#: How much history to ask for at item creation. Plaid documents a 90-day
+#: default, but an item created with no value came back holding only the
+#: last 30 days -- which silently truncated a two-month demo statement to
+#: fifteen rows. Set it explicitly; it cannot be changed after creation.
+DAYS_REQUESTED = 180
 
 #: Only Transactions is requested. Asking for auth or identity would widen the
 #: consent screen for data this app has no use for.
@@ -186,23 +193,52 @@ class PlaidClient:
         )
 
     def create_sandbox_item(
-        self, institution_id: str = SANDBOX_INSTITUTION
+        self,
+        institution_id: str = SANDBOX_INSTITUTION,
+        custom_user: dict | None = None,
+        days_requested: int = DAYS_REQUESTED,
     ) -> str:
         """Mint a linked sandbox item directly, skipping the Link UI.
 
         Sandbox only, and the reason it exists: it exercises every downstream
         path -- exchange, accounts, transactions -- without a web view, a login
         form or a human. The demo gets a connected issuer in one tap.
+
+        `custom_user` replaces Plaid's stock test data with your own accounts
+        and transactions. The default institution's canned feed is five
+        merchants repeated monthly, twelve of them at exactly $500 -- including
+        a $500 order at KFC -- which invites a reader to doubt every figure
+        derived from it. Passing a custom user is how you get a statement that
+        looks like a statement.
+
+        Plaid takes the config as the *password* for the reserved username
+        `user_custom`, which is odd but is the documented interface.
         """
         if not self.config.is_sandbox:
             raise PlaidNotConfigured(
                 "Sandbox items can only be created in the sandbox environment."
             )
+        options: dict[str, Any] = {"transactions": {"days_requested": days_requested}}
+        if custom_user is not None:
+            options["override_username"] = "user_custom"
+            options["override_password"] = json.dumps(custom_user)
         body = self._post(
             "/sandbox/public_token/create",
-            {"institution_id": institution_id, "initial_products": PRODUCTS},
+            {
+                "institution_id": institution_id,
+                "initial_products": PRODUCTS,
+                "options": options,
+            },
         )
         return body["public_token"]
+
+    def remove_item(self, access_token: str) -> None:
+        """Forget an item at Plaid's end.
+
+        Reseeding leaves the old item linked otherwise, and a stale access
+        token that still resolves is worse than none: it keeps answering.
+        """
+        self._post("/item/remove", {"access_token": access_token})
 
     def exchange(self, public_token: str) -> dict:
         """Swap a public token for the long-lived access token."""
