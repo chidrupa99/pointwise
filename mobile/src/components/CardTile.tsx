@@ -27,6 +27,8 @@ import {
 import { inCardUnit, missedPhrase, unitLabel, type WalletCard } from '../wallet';
 
 export const TILE_WIDTH = 228;
+/** Tall enough for a card carrying a welcome offer; the rest match it. */
+export const TILE_HEIGHT = 190;
 
 export function CardTile({
   card,
@@ -72,20 +74,28 @@ export function CardTile({
         </Text>
 
         <View style={s.figures}>
-          <Text style={s.earned}>{inCardUnit(card, 'earned')}</Text>
-          <Text style={s.unit}>{unitLabel(card.reward_unit)}</Text>
+          {/* Amount and unit share a baseline. Stacked they cost a line of
+              height the tile does not have once an offer is on it. */}
+          <View style={s.amountRow}>
+            <Text style={s.earned}>{inCardUnit(card, 'earned')}</Text>
+            <Text style={s.unit}>{unitLabel(card.reward_unit)}</Text>
+          </View>
           {missed && (
-            <Text style={[s.missed, { color: finish.onWarn }]}>
+            <Text style={[s.missed, { color: finish.onWarn }]} numberOfLines={1}>
               {missedPhrase(card)}
             </Text>
           )}
         </View>
 
+        {/* The spacer is what keeps the rail even. Tiles are all the height of
+            the tallest, the figures sit at the same offset on every one, and
+            an offer is pinned to the bottom edge rather than extending the
+            card. Sizing each tile to its own content instead gave a row of
+            three different heights, which looks like a layout fault. */}
+        <View style={s.gap} />
+
         {card.signup_bonus && (
-          <>
-            <View style={[s.hairline, { backgroundColor: finish.hairline }]} />
-            <BonusBar bonus={card.signup_bonus} finish={finish} />
-          </>
+          <BonusBar bonus={card.signup_bonus} finish={finish} />
         )}
       </LinearGradient>
     </Pressable>
@@ -106,7 +116,9 @@ const styles = (on: string, onSoft: string) =>
       shadowOffset: { width: 0, height: 10 },
       elevation: 6,
     },
-    face: { padding: space.lg, minHeight: 150 },
+    // Fixed, not minimum: every tile in the rail is this tall, so the row
+    // reads as one object instead of a staircase.
+    face: { padding: space.lg, height: TILE_HEIGHT },
     name: {
       fontFamily: UI,
       fontSize: 16.5,
@@ -122,15 +134,16 @@ const styles = (on: string, onSoft: string) =>
       color: onSoft,
       marginTop: 2,
     },
-    figures: { marginTop: space.xl },
+    figures: { marginTop: space.lg },
+    amountRow: { flexDirection: 'row', alignItems: 'baseline', gap: space.sm },
+    gap: { flex: 1, minHeight: space.md },
     earned: {
       fontFamily: MONO,
-      fontSize: 28,
+      fontSize: 26,
       letterSpacing: -1,
       color: on,
       fontVariant: ['tabular-nums'],
     },
-    unit: { fontFamily: UI, fontSize: 12, color: onSoft, marginTop: 1 },
+    unit: { fontFamily: UI, fontSize: 12, color: onSoft },
     missed: { fontFamily: UI, fontSize: 12, fontWeight: '600', marginTop: space.sm },
-    hairline: { height: 1, marginTop: space.lg },
   });

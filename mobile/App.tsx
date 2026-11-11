@@ -1,3 +1,14 @@
+import {
+  Manrope_500Medium,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+  Manrope_800ExtraBold,
+} from '@expo-google-fonts/manrope';
+import {
+  JetBrainsMono_400Regular,
+  JetBrainsMono_500Medium,
+} from '@expo-google-fonts/jetbrains-mono';
+import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -23,6 +34,17 @@ type Sheet = null | 'ask' | 'account' | 'addCard' | 'issuer';
 export default function App() {
   const scheme = useColorScheme();
   const theme: Theme = scheme === 'light' ? light : dark;
+  // Every face is named explicitly rather than leaning on fontWeight:
+  // React Native will not synthesise a bold for a custom static font, so
+  // a style asking for '700' on Manrope silently renders as Medium.
+  const [fontsReady] = useFonts({
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+    Manrope_800ExtraBold,
+    JetBrainsMono_400Regular,
+    JetBrainsMono_500Medium,
+  });
   const [sheet, setSheet] = useState<Sheet>(null);
   //: Bumped whenever the wallet changes, so Home refetches instead of showing
   //: a stale card rail behind the sheet that just changed it.
@@ -50,7 +72,9 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style={scheme === 'light' ? 'dark' : 'light'} />
 
-      {auth === null ? (
+      {/* Holding the ground colour until the faces land avoids a flash of
+          system type reflowing into Manrope on the first screen. */}
+      {auth === null || !fontsReady ? (
         <View style={s.boot} />
       ) : !auth.signed_in ? (
         <SignIn onSignedIn={refreshAuth} />

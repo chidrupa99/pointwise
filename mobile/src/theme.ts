@@ -15,8 +15,6 @@
  *   screen ends up with six different gaps that are all nearly the same.
  */
 
-import { Platform } from 'react-native';
-
 export interface Theme {
   /** Page background, bottom of the ground gradient. */
   ground: string;
@@ -43,53 +41,47 @@ export interface Theme {
   shade: string;
 }
 
-/** Warm paper, not grey. Grey reads as a tool; paper reads as a statement. */
-export const light: Theme = {
-  ground: '#F4F1EA',
-  groundLift: '#FAF8F3',
-  surface: '#FFFEFB',
-  surfaceLift: '#FFFFFF',
-  sunk: '#EAE5DA',
-  ink: '#191714',
-  inkSoft: '#5A554C',
-  inkFaint: '#8C867A',
-  rule: '#DDD7C9',
-  ruleSoft: '#EBE6DA',
-  accent: '#1F1C17',
-  accentInk: '#FBF9F4',
-  accentSoft: '#E8E3D6',
-  ok: '#1F6B4F',
-  okSoft: '#E0EDE6',
-  warn: '#8A5A14',
-  warnSoft: '#F5E9D5',
-  stop: '#8E2F2F',
-  stopSoft: '#F5E2E0',
-  shade: '#191714',
-};
-
-/** Deep ink with a blue undertone. Reads as night, not as "dark mode grey". */
+/**
+ * One palette. The app is dark only.
+ *
+ * A paper body under an ink header meant the screen broke in half at the seam,
+ * and the cards -- which are the point -- had to compete with a bright page.
+ * On ink they are the only lit thing on screen.
+ *
+ * Two chromas, both earning their place. Orange is money left on the table:
+ * it is the headline figure, the brand, and every interactive affordance,
+ * because "what did this cost me" is the question the app exists to answer.
+ * Jade is the opposite -- the card you used was already the right one.
+ * Nothing decorative is allowed to be either.
+ */
 export const dark: Theme = {
-  ground: '#080A10',
-  groundLift: '#11141E',
-  surface: '#141825',
-  surfaceLift: '#1B2031',
-  sunk: '#0D1018',
-  ink: '#F2EEE5',
-  inkSoft: '#A7A596',
-  inkFaint: '#787868',
-  rule: '#272C3C',
-  ruleSoft: '#1D2231',
-  accent: '#E8D9B0',
-  accentInk: '#0B0D14',
-  accentSoft: '#231F18',
-  ok: '#58BE92',
-  okSoft: '#11241D',
-  warn: '#D9A441',
-  warnSoft: '#241B0E',
-  stop: '#D97070',
-  stopSoft: '#241113',
+  ground: '#0A0C12',
+  groundLift: '#121622',
+  surface: '#141927',
+  surfaceLift: '#1B2132',
+  sunk: '#07090E',
+  ink: '#F3F0E9',
+  inkSoft: '#9B9C9F',
+  inkFaint: '#6E7076',
+  rule: '#2A3043',
+  ruleSoft: '#1E2433',
+  accent: '#E8703A',
+  accentInk: '#140A05',
+  accentSoft: '#2A160C',
+  ok: '#55C08F',
+  okSoft: '#0F241C',
+  warn: '#E8853A',
+  warnSoft: '#2A1A0C',
+  stop: '#E06B6B',
+  stopSoft: '#2A1113',
   shade: '#000000',
 };
+
+/**
+ * Kept so the screens' `useColorScheme()` branches resolve to something.
+ * There is no light theme: both names are the same palette on purpose.
+ */
+export const light: Theme = dark;
 
 /**
  * The vertical scale. Every margin, padding and gap is one of these.
@@ -123,29 +115,25 @@ export const radius = {
  * this looking like every other fintech app. Avenir Next runs the interface.
  * Menlo holds the figures in rows, because columns of money have to align.
  */
-export const DISPLAY = Platform.select({
-  ios: 'Didot',
-  android: 'serif',
-  default: 'Georgia',
-});
-
-export const UI = Platform.select({
-  ios: 'Avenir Next',
-  android: 'sans-serif',
-  default: 'system-ui',
-});
-
-export const MONO = Platform.select({
-  ios: 'Menlo',
-  android: 'monospace',
-  default: 'monospace',
-});
+/**
+ * Manrope for everything with words in it, JetBrains Mono for every figure.
+ *
+ * Each weight is its own family on purpose. React Native does not synthesise
+ * a bold for a custom static font, so `fontWeight: '700'` on Manrope renders
+ * as Medium and the heading quietly stops being a heading. Name the face.
+ */
+export const DISPLAY = 'Manrope_800ExtraBold';
+export const UI = 'Manrope_500Medium';
+export const UI_SEMI = 'Manrope_600SemiBold';
+export const UI_BOLD = 'Manrope_700Bold';
+export const MONO = 'JetBrainsMono_400Regular';
+export const MONO_MED = 'JetBrainsMono_500Medium';
 
 /** Type sizes, paired with the line heights they actually need. */
 export const type = {
-  hero: { fontFamily: DISPLAY, fontSize: 52, lineHeight: 58 },
-  title: { fontFamily: DISPLAY, fontSize: 27, lineHeight: 33 },
-  section: { fontFamily: UI, fontSize: 12, lineHeight: 16 },
+  hero: { fontFamily: DISPLAY, fontSize: 46, lineHeight: 52 },
+  title: { fontFamily: UI_BOLD, fontSize: 25, lineHeight: 32 },
+  section: { fontFamily: UI_SEMI, fontSize: 12, lineHeight: 16 },
   body: { fontFamily: UI, fontSize: 15, lineHeight: 22 },
   label: { fontFamily: UI, fontSize: 13, lineHeight: 18 },
   small: { fontFamily: UI, fontSize: 11.5, lineHeight: 15 },

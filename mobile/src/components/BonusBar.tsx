@@ -64,12 +64,6 @@ export function BonusBar({
   const urgent = bonus.days_left <= URGENT_DAYS;
   return (
     <View style={s.wrap}>
-      <View style={s.row}>
-        <Text style={s.label}>Welcome offer</Text>
-        <Text style={[s.label, urgent && { color: finish.onWarn }]}>
-          {bonus.days_left}d left
-        </Text>
-      </View>
       <View style={s.track}>
         <View
           style={[
@@ -81,11 +75,17 @@ export function BonusBar({
           ]}
         />
       </View>
-      {/* Two short facts on one line. As a single sentence this ran to three
-          lines on a 228pt tile and broke "at stake" across two of them. */}
+      {/* One line, two facts. The deadline leads because it is the part
+          that cannot be recovered; the stake is what it is worth. A separate
+          "WELCOME OFFER" heading above this cost a line of tile height and
+          told the reader nothing the bar did not. */}
       <View style={s.row}>
-        <Text style={s.note}>{dollars(bonus.remaining)} to go</Text>
-        <Text style={s.note}>{dollars(bonus.worth_dollars)} at stake</Text>
+        <Text style={[s.note, urgent && { color: finish.onWarn }]}>
+          {bonus.days_left}d left
+        </Text>
+        <Text style={s.note}>
+          {dollars(bonus.remaining)} to go · {dollars(bonus.worth_dollars)}
+        </Text>
       </View>
     </View>
   );

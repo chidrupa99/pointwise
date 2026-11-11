@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "mobile",
+    "name": "Pointwise",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -14,7 +14,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0B0D14",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -31,7 +31,8 @@
           "locationWhenInUsePermission": "Pointwise uses your location to work out which shop you are in, so it can tell you which card earns the most there."
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-font"
     ]
   }
 }

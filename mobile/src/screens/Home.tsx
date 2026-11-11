@@ -24,7 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ActivityRow } from '../components/ActivityRow';
 import { Brand } from '../components/Brand';
-import { CardTile } from '../components/CardTile';
+import { CardTile, TILE_HEIGHT } from '../components/CardTile';
 import { EmptyWallet } from '../components/EmptyWallet';
 import { LocationBanner } from '../components/LocationBanner';
 import {
@@ -38,6 +38,8 @@ import {
 import {
   SECTION_CAPS,
   UI,
+  UI_BOLD,
+  UI_SEMI,
   dark,
   light,
   money,
@@ -49,6 +51,28 @@ import {
 
 /** Rows shown before the feed is collapsed. */
 const PREVIEW_ROWS = 6;
+
+/**
+ * The band is burnt orange, dark at the bottom where the page meets it.
+ * Type on it is always a warm off-white -- the headline figure included,
+ * which has to invert here or it vanishes into its own background.
+ */
+/**
+ * The band's own ink, fixed in both themes. Built from theme tokens it
+ * came out the same colour as the page in dark mode and the header simply
+ * vanished; against warm paper in light mode it has to stay dark anyway.
+ */
+const BAND_TOP = '#C2561E';
+const BAND_MID = '#8A3A14';
+const BAND_BOTTOM = '#3A1709';
+
+const BAND_INK = '#FDF6EE';
+const BAND_INK_SOFT = 'rgba(253,246,238,0.78)';
+const BAND_INK_FAINT = 'rgba(253,246,238,0.62)';
+const BAND_RULE = 'rgba(253,246,238,0.34)';
+
+/** How far the card rail lifts into the band. */
+const RAIL_LIFT = 56;
 
 interface Props {
   onOpenChat: () => void;
@@ -105,38 +129,7 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
 
   return (
     <View style={s.root}>
-      <LinearGradient
-        colors={[theme.groundLift, theme.ground]}
-        style={StyleSheet.absoluteFill}
-      />
-      <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-        <View style={s.nav}>
-          <View style={s.brand}>
-            <Brand size={30} theme={theme} />
-            <Text style={s.brandName}>Pointwise</Text>
-          </View>
-          <View style={s.navActions}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Ask Pointwise"
-              onPress={onOpenChat}
-              style={({ pressed }) => [s.askBtn, pressed && { opacity: 0.6 }]}
-            >
-              <Text style={s.askText}>Ask</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Account and settings"
-              onPress={onOpenAccount}
-              style={({ pressed }) => [s.iconBtn, pressed && { opacity: 0.6 }]}
-            >
-              <View style={s.bar} />
-              <View style={s.bar} />
-              <View style={[s.bar, { width: 9 }]} />
-            </Pressable>
-          </View>
-        </View>
-
+      <SafeAreaView style={s.safe} edges={['left', 'right']}>
         <ScrollView
           contentContainerStyle={s.scroll}
           showsVerticalScrollIndicator={false}
@@ -144,10 +137,72 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
             <RefreshControl
               refreshing={busy}
               onRefresh={() => load(filter)}
-              tintColor={theme.inkFaint}
+              tintColor={BAND_INK_FAINT}
             />
           }
         >
+          {/* The band. Everything the screen is about -- who you are, what it
+              cost you -- sits on ink, and the cards lift off its bottom edge
+              into the page. The old version put all of this on the same flat
+              paper as the feed, so nothing led. */}
+          <LinearGradient
+            colors={[BAND_TOP, BAND_MID, BAND_BOTTOM] as const}
+            start={{ x: 0.1, y: 0 }}
+            end={{ x: 0.9, y: 1 }}
+            style={s.band}
+          >
+            <SafeAreaView edges={['top']}>
+              <View style={s.nav}>
+                <View style={s.brand}>
+                  <Brand
+                    size={30}
+                    theme={theme}
+                    plateColor={BAND_BOTTOM}
+                    markColor={BAND_INK}
+                  />
+                  <Text style={s.brandName}>Pointwise</Text>
+                </View>
+                <View style={s.navActions}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Ask Pointwise"
+                    onPress={onOpenChat}
+                    style={({ pressed }) => [s.askBtn, pressed && { opacity: 0.6 }]}
+                  >
+                    <Text style={s.askText}>Ask</Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Account and settings"
+                    onPress={onOpenAccount}
+                    style={({ pressed }) => [s.iconBtn, pressed && { opacity: 0.6 }]}
+                  >
+                    <View style={s.bar} />
+                    <View style={s.bar} />
+                    <View style={[s.bar, { width: 9 }]} />
+                  </Pressable>
+                </View>
+              </View>
+
+              {wallet && !empty && (
+                <View style={s.hero}>
+                  <Text style={s.heroLabel}>Left on the table</Text>
+                  <Text style={s.heroValue}>
+                    {money(wallet.totals.missed_dollars)}
+                  </Text>
+                  <Text style={s.heroSub}>
+                    {money(wallet.totals.value_earned_dollars)} earned ·{' '}
+                    {Math.round(
+                      Number(wallet.totals.points_earned),
+                    ).toLocaleString('en-US')}{' '}
+                    pts
+                  </Text>
+                </View>
+              )}
+            </SafeAreaView>
+          </LinearGradient>
+
+          <View style={s.page}>
           {error && (
             <View style={s.errorBox}>
               <Text style={s.errorText}>{error}</Text>
@@ -169,22 +224,6 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
           )}
 
           {empty && <EmptyWallet theme={theme} onAddCard={onAddCard} />}
-
-          {wallet && !empty && (
-            <View style={s.hero}>
-              <Text style={s.heroLabel}>Left on the table</Text>
-              <Text style={s.heroValue}>
-                {money(wallet.totals.missed_dollars)}
-              </Text>
-              <Text style={s.heroSub}>
-                {money(wallet.totals.value_earned_dollars)} earned ·{' '}
-                {Math.round(Number(wallet.totals.points_earned)).toLocaleString(
-                  'en-US',
-                )}{' '}
-                pts
-              </Text>
-            </View>
-          )}
 
           {wallet && !empty && (
             <>
@@ -270,6 +309,7 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
           {!empty && activity.length === 0 && !busy && (
             <Text style={s.none}>Nothing on this card yet.</Text>
           )}
+          </View>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -280,22 +320,28 @@ const styles = (t: Theme) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: t.ground },
     safe: { flex: 1 },
-    scroll: { paddingHorizontal: space.lg, paddingBottom: space.xxxl },
+    scroll: { paddingBottom: space.xxxl },
+
+    band: {
+      paddingHorizontal: space.lg,
+      paddingBottom: RAIL_LIFT + space.lg,
+      borderBottomLeftRadius: radius.xl,
+      borderBottomRightRadius: radius.xl,
+    },
+    // Everything below the band sits on paper and is lifted up over its edge.
+    page: { marginTop: -RAIL_LIFT, paddingHorizontal: space.lg },
 
     nav: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: space.lg,
-      paddingBottom: space.md,
-      paddingTop: space.xs,
+      paddingTop: space.sm,
     },
     brand: { flexDirection: 'row', alignItems: 'center', gap: space.md },
     brandName: {
-      fontFamily: UI,
+      fontFamily: UI_BOLD,
       fontSize: 19,
-      fontWeight: '600',
-      color: t.ink,
+      color: BAND_INK,
       letterSpacing: -0.3,
     },
     navActions: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
@@ -304,22 +350,37 @@ const styles = (t: Theme) =>
       height: 36,
       borderRadius: radius.pill,
       borderWidth: 1,
-      borderColor: t.rule,
+      borderColor: BAND_RULE,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    askText: { fontFamily: UI, fontSize: 14, fontWeight: '600', color: t.ink },
+    askText: { fontFamily: UI_SEMI, fontSize: 14, color: BAND_INK },
     iconBtn: {
       width: 36,
       height: 36,
       borderRadius: radius.pill,
       borderWidth: 1,
-      borderColor: t.rule,
+      borderColor: BAND_RULE,
       alignItems: 'center',
       justifyContent: 'center',
       gap: 3.5,
     },
-    bar: { width: 14, height: 1.5, borderRadius: 1, backgroundColor: t.ink },
+    bar: { width: 14, height: 1.5, borderRadius: 1, backgroundColor: BAND_INK },
+
+    hero: { paddingTop: space.xxl, paddingBottom: space.sm },
+    heroLabel: { ...SECTION_CAPS, color: BAND_INK_FAINT },
+    heroValue: {
+      ...type.hero,
+      color: BAND_INK,
+      marginTop: space.sm,
+      letterSpacing: -2,
+    },
+    heroSub: {
+      ...type.label,
+      color: BAND_INK_SOFT,
+      marginTop: space.xs,
+      fontVariant: ['tabular-nums'],
+    },
 
     errorBox: {
       backgroundColor: t.stopSoft,
@@ -340,38 +401,18 @@ const styles = (t: Theme) =>
     bannerText: { ...type.label, color: t.inkSoft },
     spinner: { marginTop: space.xxl },
 
-    hero: { paddingTop: space.xl, paddingBottom: space.xxl },
-    heroLabel: { ...SECTION_CAPS, color: t.inkFaint },
-    heroValue: {
-      ...type.hero,
-      color: t.ink,
-      marginTop: space.sm,
-      // Didot's figures are drawn tight; a touch of negative tracking keeps a
-      // five-character amount from reading as five separate glyphs.
-      letterSpacing: -1.5,
-    },
-    heroSub: {
-      ...type.label,
-      color: t.inkFaint,
-      marginTop: space.xs,
-      fontVariant: ['tabular-nums'],
-    },
-
     section: { ...SECTION_CAPS, color: t.inkFaint },
     sectionPad: { marginBottom: space.md },
 
-    railOuter: { marginHorizontal: -space.lg, marginBottom: space.xxl },
-    // Top-aligned, so a tile is only as tall as what it holds. Stretching
-    // them to match left a void on any card with no live welcome offer.
+    railOuter: { marginHorizontal: -space.lg, marginBottom: space.xl },
     rail: {
       gap: space.md,
       paddingHorizontal: space.lg,
-      paddingVertical: space.xs,
-      alignItems: 'flex-start',
+      paddingVertical: space.sm,
     },
     add: {
       width: 132,
-      minHeight: 150,
+      height: TILE_HEIGHT,
       borderRadius: radius.xl,
       borderWidth: 1,
       borderStyle: 'dashed',
@@ -380,7 +421,7 @@ const styles = (t: Theme) =>
       justifyContent: 'center',
       gap: space.xs,
     },
-    addPlus: { fontFamily: UI, fontSize: 24, color: t.inkFaint, fontWeight: '300' },
+    addPlus: { fontFamily: UI, fontSize: 24, color: t.inkFaint },
     addText: { ...type.small, color: t.inkFaint },
 
     feedHead: { gap: space.xs, marginBottom: space.md },
@@ -389,12 +430,12 @@ const styles = (t: Theme) =>
       alignItems: 'baseline',
       justifyContent: 'space-between',
     },
-    clear: { ...type.label, color: t.accent, fontWeight: '600' },
+    clear: { ...type.label, fontFamily: UI_SEMI, color: t.accent },
     scope: { ...type.small, color: t.inkFaint },
 
     feed: { gap: space.sm },
     more: { alignItems: 'center', paddingVertical: space.lg },
-    moreText: { ...type.label, color: t.accent, fontWeight: '600' },
+    moreText: { ...type.label, fontFamily: UI_SEMI, color: t.accent },
     none: {
       ...type.label,
       color: t.inkFaint,
