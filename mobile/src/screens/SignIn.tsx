@@ -22,6 +22,7 @@ import {
   View,
   useColorScheme,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -31,7 +32,8 @@ import {
   startPayPalLogin,
   type AuthStatus,
 } from '../auth';
-import { dark, light, type Theme } from '../theme';
+import { Brand } from '../components/Brand';
+import { UI, dark, light, radius, space, type, type Theme } from '../theme';
 
 interface Props {
   onSignedIn: () => void;
@@ -93,16 +95,18 @@ export function SignIn({ onSignedIn }: Props) {
   }, [name, onSignedIn]);
 
   return (
-    <SafeAreaView style={s.safe}>
+    <View style={{ flex: 1, backgroundColor: theme.ground }}>
+      <LinearGradient
+        colors={[theme.groundLift, theme.ground]}
+        style={StyleSheet.absoluteFill}
+      />
+      <SafeAreaView style={s.safe}>
       <ScrollView contentContainerStyle={s.scroll}>
         <View style={s.brand}>
-          <View style={s.mark}>
-            <Text style={s.markText}>P</Text>
-          </View>
+          <Brand size={64} theme={theme} />
           <Text style={s.title}>Pointwise</Text>
           <Text style={s.tagline}>
-            Tells you which of your cards earns most, before you pay.
-            Every figure from a rules engine, never a guess.
+            Which of your cards earns most, worked out before you pay.
           </Text>
         </View>
 
@@ -179,73 +183,77 @@ export function SignIn({ onSignedIn }: Props) {
           this device, and nothing is connected to your bank.
         </Text>
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = (t: Theme) =>
   StyleSheet.create({
-    safe: { flex: 1, backgroundColor: t.ground },
-    scroll: { padding: 24, paddingTop: 56, gap: 16, flexGrow: 1 },
-    brand: { alignItems: 'center', gap: 10, marginBottom: 16 },
-    mark: {
-      width: 56,
-      height: 56,
-      borderRadius: 14,
-      backgroundColor: t.accent,
-      alignItems: 'center',
-      justifyContent: 'center',
+    safe: { flex: 1 },
+    scroll: {
+      paddingHorizontal: space.xl,
+      paddingTop: space.xxxl,
+      paddingBottom: space.xl,
+      gap: space.lg,
+      flexGrow: 1,
     },
-    markText: { color: t.accentInk, fontSize: 28, fontWeight: '700' },
-    title: { fontSize: 28, fontWeight: '700', color: t.ink },
+    brand: { alignItems: 'center', gap: space.md, marginBottom: space.xl },
+    title: { ...type.title, fontSize: 34, lineHeight: 40, color: t.ink },
     tagline: {
-      fontSize: 15,
-      lineHeight: 22,
+      ...type.body,
       color: t.inkSoft,
       textAlign: 'center',
-      maxWidth: 300,
+      maxWidth: 290,
     },
-    spinner: { marginTop: 24 },
+    spinner: { marginTop: space.xl },
 
     paypal: {
       backgroundColor: '#003087',
-      borderRadius: 12,
-      paddingVertical: 16,
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
       alignItems: 'center',
     },
-    paypalText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+    paypalText: { fontFamily: UI, color: '#fff', fontSize: 16, fontWeight: '700' },
 
-    fallback: { gap: 10 },
-    label: { fontSize: 14, color: t.inkSoft, fontWeight: '600' },
+    fallback: { gap: space.md },
+    label: { ...type.label, color: t.inkSoft, fontWeight: '600' },
     input: {
       backgroundColor: t.surface,
       borderWidth: 1,
       borderColor: t.rule,
-      borderRadius: 11,
-      paddingHorizontal: 14,
-      paddingVertical: 14,
+      borderRadius: radius.md,
+      paddingHorizontal: space.lg,
+      paddingVertical: space.lg,
+      fontFamily: UI,
       fontSize: 16,
       color: t.ink,
     },
     go: {
       backgroundColor: t.accent,
-      borderRadius: 12,
-      paddingVertical: 15,
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
       alignItems: 'center',
     },
     goOff: { opacity: 0.4 },
-    goText: { color: t.accentInk, fontSize: 16, fontWeight: '600' },
-    honest: { fontSize: 12, lineHeight: 18, color: t.inkFaint },
+    goText: {
+      fontFamily: UI,
+      color: t.accentInk,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    honest: { ...type.small, lineHeight: 17, color: t.inkFaint },
 
-    alt: { alignItems: 'center', paddingVertical: 12 },
-    altText: { color: t.accent, fontSize: 15 },
+    alt: { alignItems: 'center', paddingVertical: space.md },
+    altText: { ...type.body, color: t.accent, fontWeight: '600' },
 
-    error: { fontSize: 13, color: t.stop },
+    error: { ...type.label, color: t.stop },
     foot: {
-      fontSize: 12,
-      lineHeight: 18,
+      ...type.small,
+      lineHeight: 16,
       color: t.inkFaint,
       textAlign: 'center',
       marginTop: 'auto',
+      paddingTop: space.xl,
     },
   });

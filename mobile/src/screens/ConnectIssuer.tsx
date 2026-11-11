@@ -30,7 +30,7 @@ import {
   type PlaidStatus,
 } from '../plaid';
 import { fetchCatalog, type CatalogCard } from '../wallet';
-import { MONO, dark, light, type Theme } from '../theme';
+import { MONO, UI, dark, light, radius, space, type Theme } from '../theme';
 
 interface Props {
   /** Called whenever the transaction set changed, so Home refetches. */
@@ -272,20 +272,20 @@ export function ConnectIssuer({ onChanged }: Props) {
 const styles = (t: Theme) =>
   StyleSheet.create({
     safe: { flex: 1 },
-    scroll: { padding: 16, paddingBottom: 48, gap: 14 },
-    lead: { fontSize: 14.5, lineHeight: 21, color: t.inkSoft },
-    spinner: { marginTop: 24 },
+    scroll: { padding: space.lg, paddingBottom: space.xxxl, gap: space.md },
+    lead: { fontFamily: UI, fontSize: 14.5, lineHeight: 21, color: t.inkSoft },
+    spinner: { marginTop: space.xl },
 
     notice: {
       backgroundColor: t.warnSoft,
-      borderRadius: 11,
+      borderRadius: radius.md,
       borderLeftWidth: 3,
       borderLeftColor: t.warn,
-      padding: 13,
-      gap: 4,
+      padding: space.md,
+      gap: space.xs,
     },
-    noticeTitle: { fontSize: 14, fontWeight: '700', color: t.warn },
-    noticeBody: { fontSize: 13, lineHeight: 19, color: t.inkSoft },
+    noticeTitle: { fontFamily: UI, fontSize: 14, fontWeight: '700', color: t.warn },
+    noticeBody: { fontFamily: UI, fontSize: 13, lineHeight: 19, color: t.inkSoft },
 
     envRow: { flexDirection: 'row', justifyContent: 'space-between' },
     envLabel: { fontFamily: MONO, fontSize: 11, color: t.inkFaint },
@@ -293,53 +293,53 @@ const styles = (t: Theme) =>
 
     cta: {
       backgroundColor: t.accent,
-      borderRadius: 12,
-      paddingVertical: 14,
+      borderRadius: radius.md,
+      paddingVertical: space.md,
       alignItems: 'center',
     },
     ctaOff: { opacity: 0.45 },
-    ctaText: { color: t.accentInk, fontSize: 15.5, fontWeight: '600' },
-    fine: { fontSize: 12, lineHeight: 18, color: t.inkFaint },
+    ctaText: { color: t.accentInk, fontFamily: UI, fontSize: 15.5, fontWeight: '600' },
+    fine: { fontFamily: UI, fontSize: 12, lineHeight: 18, color: t.inkFaint },
 
     block: {
       backgroundColor: t.surface,
       borderWidth: 1,
       borderColor: t.ruleSoft,
-      borderRadius: 12,
-      padding: 14,
-      gap: 10,
+      borderRadius: radius.md,
+      padding: space.md,
+      gap: space.sm,
     },
-    blockTitle: { fontSize: 16, fontWeight: '700', color: t.ink },
+    blockTitle: { fontFamily: UI, fontSize: 16, fontWeight: '700', color: t.ink },
     blockMeta: { fontFamily: MONO, fontSize: 11, color: t.inkFaint },
 
-    account: { gap: 6, borderTopWidth: 1, borderTopColor: t.ruleSoft, paddingTop: 10 },
-    accountLabel: { fontSize: 14, color: t.ink, fontWeight: '600' },
+    account: { gap: space.xs, borderTopWidth: 1, borderTopColor: t.ruleSoft, paddingTop: space.sm },
+    accountLabel: { fontFamily: UI, fontSize: 14, color: t.ink, fontWeight: '600' },
     mapRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       backgroundColor: t.sunk,
-      borderRadius: 9,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
+      borderRadius: radius.sm,
+      paddingHorizontal: space.md,
+      paddingVertical: space.sm,
     },
-    mapValue: { fontSize: 14, color: t.ink, flex: 1 },
+    mapValue: { fontFamily: UI, fontSize: 14, color: t.ink, flex: 1 },
     mapUnset: { color: t.warn, fontWeight: '600' },
-    chev: { color: t.inkFaint, fontSize: 13, marginLeft: 8 },
+    chev: { color: t.inkFaint, fontFamily: UI, fontSize: 13, marginLeft: space.sm },
 
-    options: { gap: 4 },
-    option: { paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8 },
+    options: { gap: space.xs },
+    option: { paddingVertical: space.sm, paddingHorizontal: space.md, borderRadius: radius.sm },
     optionOn: { backgroundColor: t.accentSoft },
-    optionText: { fontSize: 14, color: t.ink },
+    optionText: { fontFamily: UI, fontSize: 14, color: t.ink },
     optionClear: { color: t.inkFaint },
 
-    stats: { gap: 4 },
+    stats: { gap: space.xs },
     stat: { fontFamily: MONO, fontSize: 12, color: t.inkSoft },
-    statWarn: { fontSize: 12.5, lineHeight: 18, color: t.warn },
+    statWarn: { fontFamily: UI, fontSize: 12.5, lineHeight: 18, color: t.warn },
 
-    danger: { alignItems: 'center', paddingVertical: 12 },
-    dangerText: { color: t.stop, fontSize: 14 },
+    danger: { alignItems: 'center', paddingVertical: space.md },
+    dangerText: { color: t.stop, fontFamily: UI, fontSize: 14 },
 
-    note: { fontSize: 13, color: t.ok, fontWeight: '600' },
-    error: { fontSize: 13, color: t.stop },
+    note: { fontFamily: UI, fontSize: 13, color: t.ok, fontWeight: '600' },
+    error: { fontFamily: UI, fontSize: 13, color: t.stop },
   });

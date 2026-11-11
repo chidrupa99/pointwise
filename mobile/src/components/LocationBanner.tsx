@@ -20,7 +20,7 @@ import {
   type MallStore,
   type NearbyPlace,
 } from '../nearby';
-import { MONO, money, type Theme } from '../theme';
+import { MONO, radius, space, type, money, type Theme } from '../theme';
 
 type State =
   | { kind: 'idle' }
@@ -126,10 +126,11 @@ export function LocationBanner({ theme }: Props) {
       >
         <View style={s.row}>
           <Text style={s.pin}>◎</Text>
+          {/* One sentence. The heading and the body underneath it said the
+              same thing twice, which is how a banner earns a dismissal. */}
           <View style={s.flex}>
-            <Text style={s.inviteTitle}>Which card, where you are</Text>
-            <Text style={s.inviteBody}>
-              Tap to check the shop you're in and the card that earns most there.
+            <Text style={s.inviteTitle}>
+              Check which card earns most where you are
             </Text>
           </View>
           {close}
@@ -259,8 +260,17 @@ export function LocationBanner({ theme }: Props) {
 
 const styles = (t: Theme) =>
   StyleSheet.create({
-    banner: { borderRadius: 12, padding: 15, marginBottom: 14 },
-    inviteBanner: { backgroundColor: t.accentSoft },
+    banner: {
+      borderRadius: radius.lg,
+      paddingVertical: space.md,
+      paddingHorizontal: space.lg,
+      marginBottom: space.md,
+    },
+    inviteBanner: {
+      backgroundColor: t.surface,
+      borderWidth: 1,
+      borderColor: t.ruleSoft,
+    },
     storeBanner: {
       backgroundColor: t.surface,
       borderWidth: 1,
@@ -277,14 +287,14 @@ const styles = (t: Theme) =>
     },
     warnBanner: { backgroundColor: t.warnSoft },
 
-    row: { flexDirection: 'row', alignItems: 'flex-start', gap: 11 },
+    row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
     flex: { flex: 1 },
     pin: { fontSize: 18, color: t.accent, marginTop: 1 },
     close: { paddingHorizontal: 2 },
     closeText: { fontSize: 15, color: t.inkFaint, fontWeight: '600' },
 
-    inviteTitle: { fontSize: 14.5, fontWeight: '700', color: t.accent },
-    inviteBody: { fontSize: 12.5, color: t.inkSoft, marginTop: 2, lineHeight: 17 },
+    inviteTitle: { ...type.label, fontWeight: '600', color: t.ink },
+    inviteBody: { ...type.small, color: t.inkSoft, marginTop: 2 },
 
     warnTitle: { fontSize: 13.5, fontWeight: '700', color: t.warn },
     warnBody: { fontSize: 12.5, color: t.warn, marginTop: 2, lineHeight: 17 },

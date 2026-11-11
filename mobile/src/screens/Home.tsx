@@ -1,10 +1,14 @@
-/** The home screen: navbar, My cards, My activity.
+/** The home screen: the headline, the card rail, the audited feed.
  *
- * Activity rows are coloured by verdict -- green where the best card was
- * already used, amber where money was left on the table -- because the whole
- * point of the audit is that the misses are findable at a glance.
+ * Activity rows are coloured by verdict -- jade where the best card was
+ * already used, amber where money was left -- because the whole point of the
+ * audit is that the misses are findable at a glance.
+ *
+ * Everything vertical comes from `space` in the theme. Chroma is reserved for
+ * the cards and for the two verdicts; the chrome around them is ink and bone.
  */
 
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -19,23 +23,32 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ActivityRow } from '../components/ActivityRow';
-import { BonusBar } from '../components/BonusBar';
+import { Brand } from '../components/Brand';
+import { CardTile } from '../components/CardTile';
 import { EmptyWallet } from '../components/EmptyWallet';
 import { LocationBanner } from '../components/LocationBanner';
 import {
-  cardColor,
   fetchActivity,
   fetchPayPalStatus,
   fetchWallet,
-  formatDate,
-  inCardUnit,
-  missedPhrase,
-  unitLabel,
   type Activity,
   type PayPalStatus,
   type WalletResponse,
 } from '../wallet';
-import { MONO, dark, light, money, type Theme } from '../theme';
+import {
+  SECTION_CAPS,
+  UI,
+  dark,
+  light,
+  money,
+  radius,
+  space,
+  type,
+  type Theme,
+} from '../theme';
+
+/** Rows shown before the feed is collapsed. */
+const PREVIEW_ROWS = 6;
 
 interface Props {
   onOpenChat: () => void;
@@ -86,347 +99,306 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
     void load(filter);
   }, [filter, load, reloadKey]);
 
-  const shown = showAll ? activity : activity.slice(0, 6);
+  const shown = showAll ? activity : activity.slice(0, PREVIEW_ROWS);
   const empty = wallet?.is_empty ?? false;
+  const filtered = wallet?.cards.find((c) => c.card_id === filter);
 
   return (
-    <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      {/* Navbar */}
-      <View style={s.nav}>
-        <View style={s.brand}>
-          <View style={s.mark}>
-            <Text style={s.markText}>P</Text>
+    <View style={s.root}>
+      <LinearGradient
+        colors={[theme.groundLift, theme.ground]}
+        style={StyleSheet.absoluteFill}
+      />
+      <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
+        <View style={s.nav}>
+          <View style={s.brand}>
+            <Brand size={30} theme={theme} />
+            <Text style={s.brandName}>Pointwise</Text>
           </View>
-          <Text style={s.brandName}>Pointwise</Text>
-        </View>
-        <View style={s.navActions}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Ask Pointwise"
-            onPress={onOpenChat}
-            style={({ pressed }) => [s.navBtn, pressed && { opacity: 0.6 }]}
-          >
-            <Text style={s.navBtnIcon}>✦</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Account and settings"
-            onPress={onOpenAccount}
-            style={({ pressed }) => [s.navBtn, pressed && { opacity: 0.6 }]}
-          >
-            <Text style={s.navBtnIcon}>☰</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={s.scroll}
-        refreshControl={
-          <RefreshControl
-            refreshing={busy}
-            onRefresh={() => load(filter)}
-            tintColor={theme.inkFaint}
-          />
-        }
-      >
-        {error && (
-          <View style={s.errorBox}>
-            <Text style={s.errorText}>{error}</Text>
-          </View>
-        )}
-
-        <LocationBanner theme={theme} />
-
-        {paypal && !paypal.configured && (
-          <View style={s.banner}>
-            <Text style={s.bannerTitle}>PayPal not connected</Text>
-            <Text style={s.bannerBody}>
-              Activity below is demo data. {paypal.hint}
-            </Text>
-          </View>
-        )}
-
-        {busy && !wallet && <ActivityIndicator style={s.spinner} color={theme.inkFaint} />}
-
-        {empty && <EmptyWallet theme={theme} onAddCard={onAddCard} />}
-
-        {/* Headline */}
-        {wallet && !empty && (
-          <View style={s.summary}>
-            <Text style={s.summaryLabel}>LEFT ON THE TABLE</Text>
-            <Text style={s.summaryValue}>{money(wallet.totals.missed_dollars)}</Text>
-            <Text style={s.summarySub}>
-              {money(wallet.totals.value_earned_dollars)} earned ·{' '}
-              {Math.round(Number(wallet.totals.points_earned)).toLocaleString(
-                'en-US',
-              )}{' '}
-              pts
-            </Text>
-          </View>
-        )}
-
-        {/* My cards */}
-        {!empty && <Text style={s.section}>My cards</Text>}
-        {wallet && !empty && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={s.cards}
-            style={s.cardsRail}
-          >
-            {wallet.cards.map((card) => {
-              const active = filter === card.card_id;
-              return (
-                <Pressable
-                  key={card.card_id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  accessibilityLabel={`${card.name}, ${card.points_earned} points earned`}
-                  onPress={() => setFilter(active ? null : card.card_id)}
-                  style={({ pressed }) => [
-                    s.card,
-                    { backgroundColor: cardColor(card.issuer, card.card_id) },
-                    active && s.cardActive,
-                    pressed && { opacity: 0.85 },
-                  ]}
-                >
-                  <View style={s.cardTop}>
-                    <Text style={s.cardName}>{card.name}</Text>
-                    <Text style={s.cardIssuer}>{card.issuer}</Text>
-                  </View>
-                  <View style={s.cardBottom}>
-                    <View>
-                      <Text style={s.cardPoints}>
-                        {inCardUnit(card, 'earned')}
-                      </Text>
-                      <Text style={s.cardPointsLabel}>
-                        {unitLabel(card.reward_unit)}
-                      </Text>
-                    </View>
-                    {Number(card.missed_dollars) > 0 && (
-                      <Text style={s.cardMissed}>{missedPhrase(card)}</Text>
-                    )}
-                  </View>
-
-                  {card.signup_bonus && (
-                    <BonusBar bonus={card.signup_bonus} theme={theme} />
-                  )}
-                </Pressable>
-              );
-            })}
-
+          <View style={s.navActions}>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Add a card"
-              onPress={onAddCard}
-              style={({ pressed }) => [s.addCard, pressed && { opacity: 0.6 }]}
+              accessibilityLabel="Ask Pointwise"
+              onPress={onOpenChat}
+              style={({ pressed }) => [s.askBtn, pressed && { opacity: 0.6 }]}
             >
-              <Text style={s.addCardPlus}>+</Text>
-              <Text style={s.addCardText}>Add a card</Text>
+              <Text style={s.askText}>Ask</Text>
             </Pressable>
-          </ScrollView>
-        )}
-
-        {/* My activity */}
-        {!empty && <View style={s.activityHead}>
-          <Text style={s.section}>My activity</Text>
-          {filter && (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Clear card filter"
-              onPress={() => setFilter(null)}
+              accessibilityLabel="Account and settings"
+              onPress={onOpenAccount}
+              style={({ pressed }) => [s.iconBtn, pressed && { opacity: 0.6 }]}
             >
-              <Text style={s.clear}>Clear filter</Text>
+              <View style={s.bar} />
+              <View style={s.bar} />
+              <View style={[s.bar, { width: 9 }]} />
+            </Pressable>
+          </View>
+        </View>
+
+        <ScrollView
+          contentContainerStyle={s.scroll}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={busy}
+              onRefresh={() => load(filter)}
+              tintColor={theme.inkFaint}
+            />
+          }
+        >
+          {error && (
+            <View style={s.errorBox}>
+              <Text style={s.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <LocationBanner theme={theme} />
+
+          {paypal && !paypal.configured && (
+            <View style={s.banner}>
+              <Text style={s.bannerText}>
+                Showing sample activity until an issuer is linked.
+              </Text>
+            </View>
+          )}
+
+          {busy && !wallet && (
+            <ActivityIndicator style={s.spinner} color={theme.inkFaint} />
+          )}
+
+          {empty && <EmptyWallet theme={theme} onAddCard={onAddCard} />}
+
+          {wallet && !empty && (
+            <View style={s.hero}>
+              <Text style={s.heroLabel}>Left on the table</Text>
+              <Text style={s.heroValue}>
+                {money(wallet.totals.missed_dollars)}
+              </Text>
+              <Text style={s.heroSub}>
+                {money(wallet.totals.value_earned_dollars)} earned ·{' '}
+                {Math.round(Number(wallet.totals.points_earned)).toLocaleString(
+                  'en-US',
+                )}{' '}
+                pts
+              </Text>
+            </View>
+          )}
+
+          {wallet && !empty && (
+            <>
+              <Text style={[s.section, s.sectionPad]}>Cards</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={s.rail}
+                style={s.railOuter}
+              >
+                {wallet.cards.map((card) => (
+                  <CardTile
+                    key={card.card_id}
+                    card={card}
+                    theme={theme}
+                    active={filter === card.card_id}
+                    onPress={() =>
+                      setFilter(filter === card.card_id ? null : card.card_id)
+                    }
+                  />
+                ))}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Add a card"
+                  onPress={onAddCard}
+                  style={({ pressed }) => [s.add, pressed && { opacity: 0.6 }]}
+                >
+                  <Text style={s.addPlus}>+</Text>
+                  <Text style={s.addText}>Add a card</Text>
+                </Pressable>
+              </ScrollView>
+            </>
+          )}
+
+          {!empty && (
+            <View style={s.feedHead}>
+              <View style={s.feedHeadRow}>
+                <Text style={s.section}>Activity</Text>
+                {filter && (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Clear card filter"
+                    onPress={() => setFilter(null)}
+                  >
+                    <Text style={s.clear}>Clear</Text>
+                  </Pressable>
+                )}
+              </View>
+              {/* "Activity" alone invites the reader to assume this is all
+                  their spending. One quiet line says what it actually covers,
+                  and it changes the moment an issuer is linked. */}
+              {activity.length > 0 && (
+                <Text style={s.scope}>
+                  {filtered
+                    ? `${filtered.name} · ${money(missedTotal)} left`
+                    : activitySource.includes('plaid')
+                      ? 'Read from your linked card issuer'
+                      : 'Link an issuer in Account to audit real spending'}
+                </Text>
+              )}
+            </View>
+          )}
+
+          <View style={s.feed}>
+            {!empty &&
+              shown.map((item) => (
+                <ActivityRow key={item.transaction_id} item={item} theme={theme} />
+              ))}
+          </View>
+
+          {!empty && activity.length > PREVIEW_ROWS && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setShowAll((v) => !v)}
+              style={({ pressed }) => [s.more, pressed && { opacity: 0.6 }]}
+            >
+              <Text style={s.moreText}>
+                {showAll ? 'Show less' : `See all ${activity.length}`}
+              </Text>
             </Pressable>
           )}
-        </View>}
 
-        {/* "Activity" invites the reader to assume this is all their
-            spending. Say what it actually covers, which changes the moment a
-            card issuer is linked. */}
-        {!empty && activity.length > 0 && (
-          <Text style={s.scopeNote}>
-            {activitySource.includes('plaid')
-              ? 'Read from your linked card issuer.'
-              : 'Link a card issuer in Account to see your real spending.'}
-          </Text>
-        )}
-
-        {filter && (
-          <Text style={s.filterNote}>
-            {wallet?.cards.find((c) => c.card_id === filter)?.name} ·{' '}
-            {money(missedTotal)} missed
-          </Text>
-        )}
-
-        <View style={s.feed}>
-          {!empty &&
-            shown.map((item) => (
-              <ActivityRow key={item.transaction_id} item={item} theme={theme} />
-            ))}
-        </View>
-
-        {!empty && activity.length > 6 && (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setShowAll((v) => !v)}
-            style={({ pressed }) => [s.seeAll, pressed && { opacity: 0.6 }]}
-          >
-            <Text style={s.seeAllText}>
-              {showAll ? 'Show less' : `See all ${activity.length}`}
-            </Text>
-          </Pressable>
-        )}
-
-        {!empty && activity.length === 0 && !busy && (
-          <Text style={s.empty}>No activity for this card yet.</Text>
-        )}
-
-      </ScrollView>
-    </SafeAreaView>
+          {!empty && activity.length === 0 && !busy && (
+            <Text style={s.none}>Nothing on this card yet.</Text>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = (t: Theme) =>
   StyleSheet.create({
-    safe: { flex: 1, backgroundColor: t.ground },
-    scroll: { paddingHorizontal: 16, paddingBottom: 48 },
+    root: { flex: 1, backgroundColor: t.ground },
+    safe: { flex: 1 },
+    scroll: { paddingHorizontal: space.lg, paddingBottom: space.xxxl },
 
     nav: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingBottom: 12,
-      paddingTop: 4,
+      paddingHorizontal: space.lg,
+      paddingBottom: space.md,
+      paddingTop: space.xs,
     },
-    brand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-    mark: {
-      width: 30,
-      height: 30,
-      borderRadius: 9,
-      backgroundColor: t.accent,
-      alignItems: 'center',
-      justifyContent: 'center',
+    brand: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+    brandName: {
+      fontFamily: UI,
+      fontSize: 19,
+      fontWeight: '600',
+      color: t.ink,
+      letterSpacing: -0.3,
     },
-    markText: { color: t.accentInk, fontWeight: '800', fontSize: 16 },
-    brandName: { fontSize: 18, fontWeight: '700', color: t.ink, letterSpacing: -0.3 },
-    navActions: { flexDirection: 'row', gap: 8 },
-    navBtn: {
-      width: 36,
+    navActions: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+    askBtn: {
+      paddingHorizontal: space.lg,
       height: 36,
-      borderRadius: 18,
-      backgroundColor: t.surface,
+      borderRadius: radius.pill,
       borderWidth: 1,
       borderColor: t.rule,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    navBtnIcon: { fontSize: 15, color: t.ink },
+    askText: { fontFamily: UI, fontSize: 14, fontWeight: '600', color: t.ink },
+    iconBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: radius.pill,
+      borderWidth: 1,
+      borderColor: t.rule,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 3.5,
+    },
+    bar: { width: 14, height: 1.5, borderRadius: 1, backgroundColor: t.ink },
 
     errorBox: {
       backgroundColor: t.stopSoft,
-      borderWidth: 1,
-      borderColor: t.stop,
-      borderRadius: 9,
-      padding: 12,
-      marginBottom: 12,
+      borderRadius: radius.md,
+      padding: space.md,
+      marginBottom: space.md,
     },
-    errorText: { color: t.stop, fontSize: 13 },
+    errorText: { ...type.label, color: t.stop },
     banner: {
-      backgroundColor: t.warnSoft,
-      borderRadius: 10,
-      padding: 13,
-      marginBottom: 14,
+      backgroundColor: t.surface,
+      borderRadius: radius.md,
+      paddingVertical: space.md,
+      paddingHorizontal: space.lg,
+      marginBottom: space.md,
+      borderWidth: 1,
+      borderColor: t.ruleSoft,
     },
-    bannerTitle: { color: t.warn, fontWeight: '700', fontSize: 13 },
-    bannerBody: { color: t.warn, fontSize: 12.5, marginTop: 2, lineHeight: 17 },
-    spinner: { marginTop: 40 },
+    bannerText: { ...type.label, color: t.inkSoft },
+    spinner: { marginTop: space.xxl },
 
-    summary: { marginBottom: 22, marginTop: 4 },
-    summaryLabel: {
-      fontSize: 10,
-      fontWeight: '700',
-      letterSpacing: 1.3,
-      color: t.inkFaint,
-    },
-    summaryValue: {
-      fontFamily: MONO,
-      fontSize: 38,
-      color: t.warn,
-      letterSpacing: -1,
-      marginTop: 4,
-    },
-    summarySub: { fontSize: 13, color: t.inkSoft, marginTop: 2 },
-
-    section: {
-      fontSize: 16,
-      fontWeight: '700',
+    hero: { paddingTop: space.xl, paddingBottom: space.xxl },
+    heroLabel: { ...SECTION_CAPS, color: t.inkFaint },
+    heroValue: {
+      ...type.hero,
       color: t.ink,
-      letterSpacing: -0.2,
-      marginBottom: 10,
+      marginTop: space.sm,
+      // Didot's figures are drawn tight; a touch of negative tracking keeps a
+      // five-character amount from reading as five separate glyphs.
+      letterSpacing: -1.5,
+    },
+    heroSub: {
+      ...type.label,
+      color: t.inkFaint,
+      marginTop: space.xs,
+      fontVariant: ['tabular-nums'],
     },
 
-    cardsRail: { marginHorizontal: -16, marginBottom: 24 },
+    section: { ...SECTION_CAPS, color: t.inkFaint },
+    sectionPad: { marginBottom: space.md },
+
+    railOuter: { marginHorizontal: -space.lg, marginBottom: space.xxl },
     // Top-aligned, so a tile is only as tall as what it holds. Stretching
-    // them to match meant a card with no welcome offer had its points pushed
-    // to the bottom by `space-between`, leaving a void where the bar would
-    // have been -- which reads as a rendering fault rather than an absence.
-    cards: { gap: 10, paddingHorizontal: 16, alignItems: 'flex-start' },
-    card: {
-      width: 220,
-      borderRadius: 14,
-      padding: 16,
-      minHeight: 132,
+    // them to match left a void on any card with no live welcome offer.
+    rail: {
+      gap: space.md,
+      paddingHorizontal: space.lg,
+      paddingVertical: space.xs,
+      alignItems: 'flex-start',
     },
-    cardActive: { borderWidth: 2, borderColor: t.ink },
-    cardBottom2: {},
-    cardTop: {},
-    cardName: { color: '#fff', fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
-    cardIssuer: { color: 'rgba(255,255,255,0.72)', fontSize: 12, marginTop: 1 },
-    cardBottom: { marginTop: 16 },
-    cardPoints: { color: '#fff', fontFamily: MONO, fontSize: 22, letterSpacing: -0.5 },
-    cardPointsLabel: { color: 'rgba(255,255,255,0.72)', fontSize: 11, marginTop: 1 },
-    cardMissed: { color: '#ffd9a0', fontSize: 11.5, fontWeight: '600', marginTop: 5 },
-
-    activityHead: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    clear: { color: t.accent, fontSize: 13, fontWeight: '600', marginBottom: 10 },
-    filterNote: {
-      fontFamily: MONO,
-      fontSize: 11,
-      color: t.inkFaint,
-      marginBottom: 10,
-      marginTop: -4,
-    },
-
-    feed: { gap: 8 },
-
-    seeAll: { alignSelf: 'center', paddingVertical: 14 },
-    seeAllText: { color: t.accent, fontSize: 14, fontWeight: '600' },
-    empty: { color: t.inkFaint, fontSize: 13.5, textAlign: 'center', marginTop: 20 },
-    scopeNote: {
-      fontSize: 12,
-      lineHeight: 17,
-      color: t.inkFaint,
-      marginTop: -4,
-      marginBottom: 10,
-    },
-
-    // The add tile that sits at the end of the cards rail.
-    addCard: {
-      width: 150,
-      borderRadius: 16,
+    add: {
+      width: 132,
+      minHeight: 150,
+      borderRadius: radius.xl,
       borderWidth: 1,
       borderStyle: 'dashed',
       borderColor: t.rule,
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 4,
+      gap: space.xs,
     },
-    addCardPlus: { fontSize: 28, color: t.inkFaint, lineHeight: 32 },
-    addCardText: { fontSize: 13, color: t.inkSoft, fontWeight: '600' },
+    addPlus: { fontFamily: UI, fontSize: 24, color: t.inkFaint, fontWeight: '300' },
+    addText: { ...type.small, color: t.inkFaint },
+
+    feedHead: { gap: space.xs, marginBottom: space.md },
+    feedHeadRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+    },
+    clear: { ...type.label, color: t.accent, fontWeight: '600' },
+    scope: { ...type.small, color: t.inkFaint },
+
+    feed: { gap: space.sm },
+    more: { alignItems: 'center', paddingVertical: space.lg },
+    moreText: { ...type.label, color: t.accent, fontWeight: '600' },
+    none: {
+      ...type.label,
+      color: t.inkFaint,
+      textAlign: 'center',
+      paddingVertical: space.xl,
+    },
   });

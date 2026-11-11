@@ -1,16 +1,20 @@
 /**
  * What a new user sees first.
  *
- * Pointwise cannot say anything useful until it knows what you carry — every
- * recommendation is a ranking of your own cards — so this screen's whole job is
- * to make adding the first one the obvious next action, and to be straight
+ * Pointwise cannot say anything useful until it knows what you carry -- every
+ * recommendation is a ranking of your own cards -- so this screen's whole job
+ * is to make adding the first one the obvious next action, and to be straight
  * about what it does and does not connect to.
+ *
+ * Three sentences, once each. An earlier version explained the ranking in the
+ * body and then explained it again in the footnote, which reads as a product
+ * that is nervous about itself.
  */
 
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { Theme } from '../theme';
+import { UI, radius, space, type, type Theme } from '../theme';
 
 export function EmptyWallet({
   theme,
@@ -21,24 +25,22 @@ export function EmptyWallet({
 }) {
   const s = styles(theme);
   return (
-    <View style={s.blank}>
-      <Text style={s.blankTitle}>No cards yet</Text>
-      <Text style={s.blankBody}>
-        Pointwise needs to know what is in your wallet before it can tell you
-        which card to use. Add the cards you carry and it will rank them on
-        every purchase, and show you the arithmetic behind the answer.
+    <View style={s.panel}>
+      <Text style={s.title}>No cards yet</Text>
+      <Text style={s.body}>
+        Pointwise ranks the cards you actually carry, and shows the arithmetic
+        behind every answer.
       </Text>
       <Pressable
         accessibilityRole="button"
         onPress={onAddCard}
-        style={({ pressed }) => [s.blankCta, pressed && { opacity: 0.8 }]}
+        style={({ pressed }) => [s.cta, pressed && { opacity: 0.85 }]}
       >
-        <Text style={s.blankCtaText}>Add your first card</Text>
+        <Text style={s.ctaText}>Add your first card</Text>
       </Pressable>
-      <Text style={s.blankNote}>
-        Nothing is connected to your bank or to PayPal's wallet. You pick
-        cards from a list, Pointwise ranks them, and you choose the card at
-        checkout yourself. It cannot pick it for you.
+      <Text style={s.note}>
+        Nothing connects to your bank. You choose the card at checkout --
+        Pointwise only tells you which one earns most.
       </Text>
     </View>
   );
@@ -46,24 +48,29 @@ export function EmptyWallet({
 
 const styles = (t: Theme) =>
   StyleSheet.create({
-    blank: {
+    panel: {
       backgroundColor: t.surface,
-      borderRadius: 16,
+      borderRadius: radius.xl,
       borderWidth: 1,
       borderColor: t.ruleSoft,
-      padding: 20,
-      marginTop: 8,
-      gap: 12,
+      padding: space.xl,
+      marginTop: space.lg,
+      gap: space.md,
     },
-    blankTitle: { fontSize: 22, fontWeight: '700', color: t.ink },
-    blankBody: { fontSize: 15, lineHeight: 22, color: t.inkSoft },
-    blankCta: {
+    title: { ...type.title, color: t.ink },
+    body: { ...type.body, color: t.inkSoft },
+    cta: {
       backgroundColor: t.accent,
-      borderRadius: 12,
-      paddingVertical: 14,
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
       alignItems: 'center',
-      marginTop: 4,
+      marginTop: space.xs,
     },
-    blankCtaText: { color: t.accentInk, fontSize: 16, fontWeight: '600' },
-    blankNote: { fontSize: 12, lineHeight: 18, color: t.inkFaint },
+    ctaText: {
+      fontFamily: UI,
+      color: t.accentInk,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    note: { ...type.small, lineHeight: 17, color: t.inkFaint },
   });

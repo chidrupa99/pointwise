@@ -30,7 +30,7 @@ import {
   type TraceEntry,
 } from '../api';
 import { quietPosition } from '../nearby';
-import { dark, light, type Theme } from '../theme';
+import { UI, dark, light, radius, space, type Theme } from '../theme';
 
 interface Bubble extends ChatTurn {
   trace?: TraceEntry[];
@@ -134,8 +134,7 @@ export function Chat() {
             <View style={s.empty}>
               <Text style={s.emptyLead}>
                 Ask about a purchase you&rsquo;re about to make, or about what
-                your cards have been earning on the purchases read from your
-                linked issuer.
+                your cards have been earning.
               </Text>
               <Text style={s.emptyNote}>
                 Every figure comes from the rules engine. The advisor reads it out;
@@ -255,96 +254,96 @@ const styles = (t: Theme) =>
   StyleSheet.create({
     wrap: { flex: 1, backgroundColor: t.ground },
     feed: { flex: 1 },
-    feedInner: { padding: 16, gap: 12 },
+    feedInner: { padding: space.lg, gap: space.md },
 
     notice: {
       backgroundColor: t.warnSoft,
       borderWidth: 1,
       borderColor: t.warn,
-      borderRadius: 9,
-      padding: 12,
-      gap: 4,
+      borderRadius: radius.sm,
+      padding: space.md,
+      gap: space.xs,
     },
-    noticeTitle: { color: t.warn, fontSize: 13, fontWeight: '700' },
-    noticeBody: { color: t.inkSoft, fontSize: 12.5, lineHeight: 17 },
+    noticeTitle: { color: t.warn, fontFamily: UI, fontSize: 13, fontWeight: '700' },
+    noticeBody: { color: t.inkSoft, fontFamily: UI, fontSize: 12.5, lineHeight: 17 },
 
-    empty: { gap: 10, paddingTop: 4 },
-    emptyLead: { color: t.ink, fontSize: 15.5, lineHeight: 22 },
+    empty: { gap: space.sm, paddingTop: space.xs },
+    emptyLead: { color: t.ink, fontFamily: UI, fontSize: 15.5, lineHeight: 22 },
     emptyNote: {
       color: t.inkFaint,
-      fontSize: 12.5,
+      fontFamily: UI, fontSize: 12.5,
       lineHeight: 18,
-      marginBottom: 6,
+      marginBottom: space.xs,
     },
     opener: {
       backgroundColor: t.surface,
       borderWidth: 1,
       borderColor: t.rule,
-      borderRadius: 9,
-      paddingVertical: 11,
-      paddingHorizontal: 13,
+      borderRadius: radius.sm,
+      paddingVertical: space.md,
+      paddingHorizontal: space.md,
     },
-    openerText: { color: t.accent, fontSize: 14, lineHeight: 19 },
+    openerText: { color: t.accent, fontFamily: UI, fontSize: 14, lineHeight: 19 },
 
     mineWrap: { alignItems: 'flex-end' },
-    theirsWrap: { alignItems: 'flex-start', gap: 6 },
+    theirsWrap: { alignItems: 'flex-start', gap: space.xs },
     mine: {
       backgroundColor: t.accent,
-      borderRadius: 14,
+      borderRadius: radius.md,
       borderBottomRightRadius: 4,
-      paddingVertical: 9,
-      paddingHorizontal: 13,
+      paddingVertical: space.sm,
+      paddingHorizontal: space.md,
       maxWidth: '86%',
     },
-    mineText: { color: t.accentInk, fontSize: 14.5, lineHeight: 20 },
+    mineText: { color: t.accentInk, fontFamily: UI, fontSize: 14.5, lineHeight: 20 },
     theirs: {
       backgroundColor: t.surface,
       borderWidth: 1,
       borderColor: t.rule,
-      borderRadius: 14,
+      borderRadius: radius.md,
       borderBottomLeftRadius: 4,
-      paddingVertical: 10,
-      paddingHorizontal: 13,
+      paddingVertical: space.sm,
+      paddingHorizontal: space.md,
       maxWidth: '92%',
     },
-    theirsText: { color: t.ink, fontSize: 14.5, lineHeight: 21 },
+    theirsText: { color: t.ink, fontFamily: UI, fontSize: 14.5, lineHeight: 21 },
     broken: { backgroundColor: t.stopSoft, borderColor: t.stop },
-    brokenText: { color: t.stop, fontSize: 13 },
+    brokenText: { color: t.stop, fontFamily: UI, fontSize: 13 },
 
-    trace: { gap: 3, paddingLeft: 3 },
-    traceRow: { color: t.inkFaint, fontSize: 11.5, lineHeight: 16 },
+    trace: { gap: space.xs, paddingLeft: space.xs },
+    traceRow: { color: t.inkFaint, fontFamily: UI, fontSize: 11.5, lineHeight: 16 },
     traceBad: { color: t.warn },
 
-    thinking: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 3 },
-    thinkingText: { color: t.inkFaint, fontSize: 12.5 },
+    thinking: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingLeft: space.xs },
+    thinkingText: { color: t.inkFaint, fontFamily: UI, fontSize: 12.5 },
 
     pills: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: 8,
-      marginTop: 10,
-      marginBottom: 4,
+      gap: space.sm,
+      marginTop: space.sm,
+      marginBottom: space.xs,
     },
     pill: {
-      paddingVertical: 9,
-      paddingHorizontal: 14,
-      borderRadius: 999,
+      paddingVertical: space.sm,
+      paddingHorizontal: space.md,
+      borderRadius: radius.xl,
       borderWidth: 1,
       borderColor: t.accent,
       backgroundColor: t.accentSoft,
     },
     pillOn: { opacity: 0.6 },
-    pillText: { color: t.accent, fontSize: 14, fontWeight: '600' },
+    pillText: { color: t.accent, fontFamily: UI, fontSize: 14, fontWeight: '600' },
     pillOther: { borderColor: t.rule, backgroundColor: t.surface },
     pillOtherText: { color: t.inkSoft, fontWeight: '500' },
 
     composer: {
       flexDirection: 'row',
       alignItems: 'flex-end',
-      gap: 8,
-      paddingHorizontal: 16,
-      paddingTop: 10,
-      paddingBottom: 10,
+      gap: space.sm,
+      paddingHorizontal: space.lg,
+      paddingTop: space.sm,
+      paddingBottom: space.sm,
       borderTopWidth: 1,
       borderTopColor: t.rule,
       backgroundColor: t.surface,
@@ -356,19 +355,19 @@ const styles = (t: Theme) =>
       backgroundColor: t.sunk,
       borderWidth: 1,
       borderColor: t.rule,
-      borderRadius: 9,
-      paddingHorizontal: 12,
-      paddingTop: 10,
-      paddingBottom: 10,
+      borderRadius: radius.sm,
+      paddingHorizontal: space.md,
+      paddingTop: space.sm,
+      paddingBottom: space.sm,
       color: t.ink,
-      fontSize: 14.5,
+      fontFamily: UI, fontSize: 14.5,
     },
     send: {
       backgroundColor: t.accent,
-      borderRadius: 9,
-      paddingHorizontal: 16,
+      borderRadius: radius.sm,
+      paddingHorizontal: space.lg,
       height: 40,
       justifyContent: 'center',
     },
-    sendText: { color: t.accentInk, fontSize: 14.5, fontWeight: '700' },
+    sendText: { color: t.accentInk, fontFamily: UI, fontSize: 14.5, fontWeight: '700' },
   });
