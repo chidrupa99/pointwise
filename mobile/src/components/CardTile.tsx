@@ -19,6 +19,8 @@ import { BonusBar } from './BonusBar';
 import {
   MONO,
   UI,
+  UI_BOLD,
+  UI_SEMI,
   cardFinish,
   radius,
   space,
@@ -80,9 +82,15 @@ export function CardTile({
             <Text style={s.earned}>{inCardUnit(card, 'earned')}</Text>
             <Text style={s.unit}>{unitLabel(card.reward_unit)}</Text>
           </View>
-          {missed && (
+          {missed ? (
             <Text style={[s.missed, { color: finish.onWarn }]} numberOfLines={1}>
               {missedPhrase(card)}
+            </Text>
+          ) : (
+            // A card with nothing left on it has earned the right to say so.
+            // Blank here read as missing data rather than a clean sheet.
+            <Text style={[s.clean, { color: finish.onSoft }]} numberOfLines={1}>
+              Nothing left behind
             </Text>
           )}
         </View>
@@ -120,19 +128,17 @@ const styles = (on: string, onSoft: string) =>
     // reads as one object instead of a staircase.
     face: { padding: space.lg, height: TILE_HEIGHT },
     name: {
-      fontFamily: UI,
-      fontSize: 16.5,
-      fontWeight: '600',
-      letterSpacing: -0.2,
+      fontFamily: UI_BOLD,
+      fontSize: 17,
+      letterSpacing: -0.3,
       color: on,
     },
     issuer: {
       fontFamily: UI,
-      fontSize: 11.5,
-      letterSpacing: 0.9,
-      textTransform: 'uppercase',
+      fontSize: 11,
+      letterSpacing: 0.4,
       color: onSoft,
-      marginTop: 2,
+      marginTop: 1,
     },
     figures: { marginTop: space.lg },
     amountRow: { flexDirection: 'row', alignItems: 'baseline', gap: space.sm },
@@ -145,5 +151,6 @@ const styles = (on: string, onSoft: string) =>
       fontVariant: ['tabular-nums'],
     },
     unit: { fontFamily: UI, fontSize: 12, color: onSoft },
-    missed: { fontFamily: UI, fontSize: 12, fontWeight: '600', marginTop: space.sm },
+    missed: { fontFamily: UI_SEMI, fontSize: 12, marginTop: space.sm },
+    clean: { fontFamily: UI, fontSize: 12, marginTop: space.sm },
   });

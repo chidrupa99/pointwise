@@ -159,17 +159,19 @@ export function inCardUnit(card: WalletCard, which: 'earned' | 'missed'): string
 /**
  * What a card's missed value reads as on its tile.
  *
- * Deliberately phrased as an equivalence — "worth 175 more miles" — and never
- * as "175 miles missed". The better card earns a different currency, so the
- * user did not forgo miles on this card; this is what the lost value amounts
- * to in the unit the tile is already speaking. Saying it the short way would
- * be a smaller, wronger sentence.
+ * Still an equivalence, never "175 miles missed": the better card earns a
+ * different currency, so the user did not forgo miles on this card. This is
+ * what the lost value amounts to in the unit the tile already speaks.
+ *
+ * "worth 175 more miles" left the obvious question unanswered -- more than
+ * what? "elsewhere" answers it in one word, which is all the room a 228pt
+ * tile has: the longer phrasing ran to the edge and clipped.
  */
 export function missedPhrase(card: WalletCard): string {
   const amount = inCardUnit(card, 'missed');
   return card.reward_unit === 'cashback_percent'
-    ? `worth ${amount} more`
-    : `worth ${amount} more ${unitLabel(card.reward_unit)}`;
+    ? `+${amount} elsewhere`
+    : `+${amount} ${unitLabel(card.reward_unit)} elsewhere`;
 }
 
 /** The word for a card's unit, singular-agnostic and short enough for a tile. */

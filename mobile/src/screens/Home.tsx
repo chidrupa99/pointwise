@@ -24,7 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ActivityRow } from '../components/ActivityRow';
 import { Brand } from '../components/Brand';
-import { CardTile, TILE_HEIGHT } from '../components/CardTile';
+import { CardTile, TILE_HEIGHT, TILE_WIDTH } from '../components/CardTile';
 import { EmptyWallet } from '../components/EmptyWallet';
 import { LocationBanner } from '../components/LocationBanner';
 import {
@@ -98,6 +98,8 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  //: Which tile the rail is resting on, for the dots beneath it.
+  const [cardIndex, setCardIndex] = useState(0);
 
   const load = useCallback(async (cardId: string | null) => {
     setError(null);
@@ -227,10 +229,20 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
 
           {wallet && !empty && (
             <>
-              <Text style={[s.section, s.sectionPad]}>Cards</Text>
+              <Text style={[s.section, s.sectionPad]}>Your cards</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
+                snapToInterval={TILE_WIDTH + space.md}
+                decelerationRate="fast"
+                onScroll={(e) =>
+                  setCardIndex(
+                    Math.round(
+                      e.nativeEvent.contentOffset.x / (TILE_WIDTH + space.md),
+                    ),
+                  )
+                }
+                scrollEventThrottle={32}
                 contentContainerStyle={s.rail}
                 style={s.railOuter}
               >
@@ -255,6 +267,18 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
                   <Text style={s.addText}>Add a card</Text>
                 </Pressable>
               </ScrollView>
+
+              {/* Which card you are on. Without it the rail gives no sign that
+                  anything is off the right edge, and on a four-card wallet two
+                  of them are never discovered. */}
+              <View style={s.dots}>
+                {wallet.cards.map((card, i) => (
+                  <View
+                    key={card.card_id}
+                    style={[s.dot, i === cardIndex && s.dotOn]}
+                  />
+                ))}
+              </View>
             </>
           )}
 
@@ -402,9 +426,22 @@ const styles = (t: Theme) =>
     spinner: { marginTop: space.xxl },
 
     section: { ...SECTION_CAPS, color: t.inkFaint },
-    sectionPad: { marginBottom: space.md },
+    sectionPad: { marginTop: space.xl, marginBottom: space.md },
 
-    railOuter: { marginHorizontal: -space.lg, marginBottom: space.xl },
+    railOuter: { marginHorizontal: -space.lg, marginBottom: space.md },
+    dots: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: space.sm,
+      marginBottom: space.xl,
+    },
+    dot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: t.rule,
+    },
+    dotOn: { backgroundColor: t.accent, width: 18 },
     rail: {
       gap: space.md,
       paddingHorizontal: space.lg,
