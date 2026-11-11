@@ -368,13 +368,16 @@ const styles = (t: Theme) =>
     },
 
     cardsRail: { marginHorizontal: -16, marginBottom: 24 },
-    cards: { gap: 10, paddingHorizontal: 16 },
+    // Top-aligned, so a tile is only as tall as what it holds. Stretching
+    // them to match meant a card with no welcome offer had its points pushed
+    // to the bottom by `space-between`, leaving a void where the bar would
+    // have been -- which reads as a rendering fault rather than an absence.
+    cards: { gap: 10, paddingHorizontal: 16, alignItems: 'flex-start' },
     card: {
       width: 220,
       borderRadius: 14,
       padding: 16,
       minHeight: 132,
-      justifyContent: 'space-between',
     },
     cardActive: { borderWidth: 2, borderColor: t.ink },
     cardBottom2: {},

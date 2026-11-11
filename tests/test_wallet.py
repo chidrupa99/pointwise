@@ -168,13 +168,17 @@ class TestBonusProgress:
         assert p.remaining == D("0")
         assert p.percent == 100.0
 
-    def test_earned_beats_expired_forever(self):
-        """Once hit, the offer is hit. A later date cannot un-earn it."""
+    def test_earned_is_not_un_earned_once_the_window_shuts(self):
+        """Once hit, the offer is hit. A later date cannot take it back.
+
+        Dated a month past the window rather than a year: beyond that the bar
+        stops being shown at all, which is a different claim with its own test.
+        """
         card = _card_with_bonus(_bonus(spend=4000, months=3))
         entry = OwnedCard(card_id=card.id, opened_on=date(2026, 1, 1))
         spend = {card.id: [(date(2026, 2, 1), D("4000"))]}
 
-        p = wallet.bonus_progress(card, entry, spend, today=date(2026, 12, 31))
+        p = wallet.bonus_progress(card, entry, spend, today=date(2026, 5, 1))
         assert p.earned is True
         assert p.expired is False
 
@@ -191,8 +195,41 @@ class TestBonusProgress:
     def test_days_left_floors_at_zero(self):
         card = _card_with_bonus(_bonus(months=3))
         entry = OwnedCard(card_id=card.id, opened_on=date(2026, 1, 1))
-        p = wallet.bonus_progress(card, entry, {}, today=date(2026, 12, 1))
+        p = wallet.bonus_progress(card, entry, {}, today=date(2026, 5, 1))
         assert p.days_left == 0
+
+    def test_a_long_closed_offer_is_not_shown_at_all(self):
+        """A wallet built over years should not be a column of dead bars.
+
+        The offer on a card opened in 2023 is not something its holder can act
+        on, and keeping it on the tile crowds out the one window still open.
+        """
+        card = _card_with_bonus(_bonus(spend=6000, months=6))
+        entry = OwnedCard(card_id=card.id, opened_on=date(2023, 6, 12))
+        assert wallet.bonus_progress(card, entry, {}, today=date(2026, 11, 11)) is None
+
+    def test_a_recently_missed_offer_is_still_shown(self):
+        """Missing a bonus last month is worth knowing, and worth learning from."""
+        card = _card_with_bonus(_bonus(spend=4000, months=3))
+        entry = OwnedCard(card_id=card.id, opened_on=date(2026, 6, 1))
+        spend = {card.id: [(date(2026, 7, 1), D("900"))]}
+
+        p = wallet.bonus_progress(card, entry, spend, today=date(2026, 9, 20))
+        assert p is not None
+        assert p.expired is True
+        assert p.remaining == D("3100")
+
+    def test_the_cutoff_is_measured_from_the_window_not_the_open_date(self):
+        """A long offer on an older card is still live and must survive.
+
+        Measuring the grace period from `opened_on` would hide a 12-month
+        offer opened 13 months ago while its window was still open.
+        """
+        card = _card_with_bonus(_bonus(spend=6000, months=12))
+        entry = OwnedCard(card_id=card.id, opened_on=date(2026, 1, 1))
+        p = wallet.bonus_progress(card, entry, {}, today=date(2026, 11, 11))
+        assert p is not None
+        assert p.expired is False
 
     def test_another_cards_spend_is_not_counted(self):
         card = _card_with_bonus(_bonus())

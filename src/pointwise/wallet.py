@@ -18,7 +18,7 @@ import json
 import os
 import tempfile
 from calendar import monthrange
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -29,6 +29,12 @@ from .models import Card, RewardUnit
 WALLET_PATH = Path(__file__).resolve().parents[2] / "data" / "wallet.json"
 
 _ZERO = Decimal("0")
+
+#: How long a closed welcome-offer window stays on the card tile. Long
+#: enough that a bonus missed last month is still visible and can be
+#: learned from; short enough that a wallet built up over years is not a
+#: column of dead progress bars.
+BONUS_VISIBLE_AFTER_DAYS = 45
 
 
 class OwnedCard(BaseModel):
@@ -198,6 +204,14 @@ def bonus_progress(
 
     now = today or date.today()
     ends = _months_after(entry.opened_on, bonus.within_months)
+    # A welcome offer stops being news. While the window is open the bar is
+    # the most actionable thing on the card, and a window that closed recently
+    # still is -- a bonus missed last month is worth knowing about. One that
+    # closed two years ago is clutter on a card the user has settled into, and
+    # on a wallet built over several years it would put a dead bar on nearly
+    # every tile.
+    if now > ends + timedelta(days=BONUS_VISIBLE_AFTER_DAYS):
+        return None
     # Only spend inside the window counts. Spend from before the account was
     # opened obviously cannot, and the issuer stops counting on the end date.
     spent = sum(
