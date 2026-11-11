@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.env
+.env.*
+!.env.example
+*.sqlite
+.DS_Store
+
+# runtime state, not source
+data/ledger.json
+
+# Provisioned PayPal funding sources: runtime state, sandbox ids, not source.
+data/funding.json
+data/wallet.json
+data/profile.json
+data/plaid.json
+data/plaid_transactions.json

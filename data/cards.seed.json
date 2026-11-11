@@ -1,0 +1,778 @@
+{
+  "_comment": [
+    "Seed wallet for development. Every rule is verified_by_human: false.",
+    "These rates are drawn from general knowledge of publicly advertised terms",
+    "and MUST be checked against each issuer's current cardmember agreement",
+    "before any user-facing dollar figure is shown. Issuers revise earn rates,",
+    "caps and annual fees regularly; several of these cards were refreshed in",
+    "2025. Draining this review queue is the job of the rules console."
+  ],
+  "cards": [
+    {
+      "id": "amex-gold",
+      "issuer": "American Express",
+      "name": "Amex Gold",
+      "network": "Amex",
+      "annual_fee": "325",
+      "foreign_transaction_fee_percent": "0",
+      "point_value_cents": "1.8",
+      "rules": [
+        {
+          "id": "amex-gold-dining",
+          "label": "4x restaurants",
+          "categories": [
+            "dining"
+          ],
+          "rate": "4",
+          "unit": "points",
+          "cap": {
+            "amount": "50000",
+            "basis": "spend",
+            "period": "calendar_year"
+          },
+          "provenance": {
+            "source_url": "https://www.americanexpress.com/us/credit-cards/card/gold-card/",
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "amex-gold-grocery",
+          "label": "4x US supermarkets",
+          "categories": [
+            "grocery"
+          ],
+          "rate": "4",
+          "unit": "points",
+          "cap": {
+            "amount": "25000",
+            "basis": "spend",
+            "period": "calendar_year"
+          },
+          "notes": "US supermarkets only. Superstores and wholesale clubs are excluded, which is why Walmart and Costco do not earn this.",
+          "provenance": {
+            "source_url": "https://www.americanexpress.com/us/credit-cards/card/gold-card/",
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "amex-gold-airfare",
+          "label": "3x flights booked direct",
+          "categories": [
+            "airfare"
+          ],
+          "rate": "3",
+          "unit": "points",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "amex-gold-base",
+          "label": "1x everything else",
+          "rate": "1",
+          "unit": "points",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ],
+      "signup_bonus": {
+        "points": "60000",
+        "spend_required": "6000",
+        "within_months": 6,
+        "unit": "points",
+        "provenance": {
+          "quote": null,
+          "source_url": null,
+          "extracted_on": null,
+          "verified_by_human": false
+        }
+      }
+    },
+    {
+      "id": "amex-platinum",
+      "issuer": "American Express",
+      "name": "Amex Platinum",
+      "network": "Amex",
+      "annual_fee": "695",
+      "foreign_transaction_fee_percent": "0",
+      "point_value_cents": "1.8",
+      "rules": [
+        {
+          "id": "amex-plat-airfare",
+          "label": "5x flights booked direct or via Amex Travel",
+          "categories": [
+            "airfare"
+          ],
+          "rate": "5",
+          "unit": "points",
+          "cap": {
+            "amount": "500000",
+            "basis": "spend",
+            "period": "calendar_year"
+          },
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "amex-plat-hotel",
+          "label": "5x prepaid hotels via Amex Travel",
+          "categories": [
+            "hotel"
+          ],
+          "rate": "5",
+          "unit": "points",
+          "requires_portal": "Amex Travel",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "amex-plat-base",
+          "label": "1x everything else",
+          "rate": "1",
+          "unit": "points",
+          "notes": "Amex refreshed this card in 2025. The annual fee and earn rates here are the pre-refresh figures and need re-verification before use.",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ],
+      "signup_bonus": {
+        "points": "80000",
+        "spend_required": "8000",
+        "within_months": 6,
+        "unit": "points",
+        "provenance": {
+          "quote": null,
+          "source_url": null,
+          "extracted_on": null,
+          "verified_by_human": false
+        }
+      }
+    },
+    {
+      "id": "amex-blue-cash-preferred",
+      "issuer": "American Express",
+      "name": "Blue Cash Preferred",
+      "network": "Amex",
+      "annual_fee": "95",
+      "foreign_transaction_fee_percent": "2.7",
+      "point_value_cents": "1.0",
+      "rules": [
+        {
+          "id": "bcp-grocery",
+          "label": "6% US supermarkets",
+          "categories": [
+            "grocery"
+          ],
+          "rate": "6",
+          "unit": "cashback_percent",
+          "cap": {
+            "amount": "6000",
+            "basis": "spend",
+            "period": "calendar_year"
+          },
+          "notes": "The $6,000 annual cap is low enough that a household hits it mid-year, which is exactly the case a blended rate gets wrong.",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "bcp-streaming",
+          "label": "6% select US streaming",
+          "categories": [
+            "streaming"
+          ],
+          "rate": "6",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "bcp-gas-transit",
+          "label": "3% US gas and transit",
+          "categories": [
+            "gas",
+            "transit"
+          ],
+          "rate": "3",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "bcp-base",
+          "label": "1% everything else",
+          "rate": "1",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ],
+      "signup_bonus": {
+        "points": "25000",
+        "spend_required": "3000",
+        "within_months": 6,
+        "unit": "points",
+        "provenance": {
+          "quote": null,
+          "source_url": null,
+          "extracted_on": null,
+          "verified_by_human": false
+        }
+      }
+    },
+    {
+      "id": "chase-sapphire-preferred",
+      "issuer": "Chase",
+      "name": "Sapphire Preferred",
+      "network": "Visa",
+      "annual_fee": "95",
+      "foreign_transaction_fee_percent": "0",
+      "point_value_cents": "1.25",
+      "rules": [
+        {
+          "id": "csp-portal-travel",
+          "label": "5x travel booked via Chase Travel",
+          "categories": [
+            "airfare",
+            "hotel",
+            "car_rental",
+            "cruise"
+          ],
+          "rate": "5",
+          "unit": "points",
+          "requires_portal": "Chase Travel",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "csp-dining",
+          "label": "3x dining",
+          "categories": [
+            "dining"
+          ],
+          "rate": "3",
+          "unit": "points",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "csp-streaming",
+          "label": "3x select streaming",
+          "categories": [
+            "streaming"
+          ],
+          "rate": "3",
+          "unit": "points",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "csp-travel",
+          "label": "2x other travel",
+          "categories": [
+            "airfare",
+            "hotel",
+            "car_rental",
+            "cruise",
+            "transit",
+            "rideshare"
+          ],
+          "rate": "2",
+          "unit": "points",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "csp-base",
+          "label": "1x everything else",
+          "rate": "1",
+          "unit": "points",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ],
+      "signup_bonus": {
+        "points": "60000",
+        "spend_required": "4000",
+        "within_months": 3,
+        "unit": "points",
+        "provenance": {
+          "quote": null,
+          "source_url": null,
+          "extracted_on": null,
+          "verified_by_human": false
+        }
+      }
+    },
+    {
+      "id": "chase-freedom-flex",
+      "issuer": "Chase",
+      "name": "Freedom Flex",
+      "network": "Visa",
+      "annual_fee": "0",
+      "foreign_transaction_fee_percent": "3",
+      "point_value_cents": "1.0",
+      "rules": [
+        {
+          "id": "flex-rotating-q4-grocery",
+          "label": "5% rotating category (Q4: grocery)",
+          "categories": [
+            "grocery"
+          ],
+          "rate": "5",
+          "unit": "cashback_percent",
+          "cap": {
+            "amount": "1500",
+            "basis": "spend",
+            "period": "calendar_quarter"
+          },
+          "active_quarters": [
+            4
+          ],
+          "requires_activation": true,
+          "notes": "Rotating categories are announced quarterly and must be activated. An unactivated quarter earns the base rate, which users routinely forget.",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "flex-dining",
+          "label": "3% dining",
+          "categories": [
+            "dining"
+          ],
+          "rate": "3",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "flex-drugstore",
+          "label": "3% drugstores",
+          "categories": [
+            "drugstore"
+          ],
+          "rate": "3",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "flex-base",
+          "label": "1% everything else",
+          "rate": "1",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "chase-freedom-unlimited",
+      "issuer": "Chase",
+      "name": "Freedom Unlimited",
+      "network": "Visa",
+      "annual_fee": "0",
+      "foreign_transaction_fee_percent": "3",
+      "point_value_cents": "1.0",
+      "rules": [
+        {
+          "id": "cfu-dining",
+          "label": "3% dining",
+          "categories": [
+            "dining"
+          ],
+          "rate": "3",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "cfu-drugstore",
+          "label": "3% drugstores",
+          "categories": [
+            "drugstore"
+          ],
+          "rate": "3",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "cfu-base",
+          "label": "1.5% everything else",
+          "rate": "1.5",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ],
+      "signup_bonus": {
+        "points": "20000",
+        "spend_required": "500",
+        "within_months": 3,
+        "unit": "points",
+        "provenance": {
+          "quote": null,
+          "source_url": null,
+          "extracted_on": null,
+          "verified_by_human": false
+        }
+      }
+    },
+    {
+      "id": "citi-double-cash",
+      "issuer": "Citi",
+      "name": "Double Cash",
+      "network": "Mastercard",
+      "annual_fee": "0",
+      "foreign_transaction_fee_percent": "3",
+      "point_value_cents": "1.0",
+      "rules": [
+        {
+          "id": "cdc-base",
+          "label": "2% everything",
+          "rate": "2",
+          "unit": "cashback_percent",
+          "notes": "Earned as 1% at purchase and 1% on payment. The engine treats it as 2% at purchase; a cash-flow-accurate model would split it.",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "citi-custom-cash",
+      "issuer": "Citi",
+      "name": "Custom Cash",
+      "network": "Mastercard",
+      "annual_fee": "0",
+      "foreign_transaction_fee_percent": "3",
+      "point_value_cents": "1.0",
+      "bonus_limited_to_top_category": true,
+      "rules": [
+        {
+          "id": "ccc-top-category",
+          "label": "5% on your top eligible category",
+          "categories": [
+            "dining",
+            "grocery",
+            "gas",
+            "transit",
+            "drugstore",
+            "entertainment",
+            "streaming",
+            "home_improvement"
+          ],
+          "rate": "5",
+          "unit": "cashback_percent",
+          "cap": {
+            "amount": "500",
+            "basis": "spend",
+            "period": "billing_cycle"
+          },
+          "notes": "Only the single highest-spend eligible category each cycle earns 5%. A one-off purchase cannot settle which that will be, so the engine attaches a caveat rather than guessing.",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "ccc-base",
+          "label": "1% everything else",
+          "rate": "1",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ],
+      "signup_bonus": {
+        "points": "20000",
+        "spend_required": "1500",
+        "within_months": 6,
+        "unit": "points",
+        "provenance": {
+          "quote": null,
+          "source_url": null,
+          "extracted_on": null,
+          "verified_by_human": false
+        }
+      }
+    },
+    {
+      "id": "capital-one-savor",
+      "issuer": "Capital One",
+      "name": "Savor",
+      "network": "Mastercard",
+      "annual_fee": "0",
+      "foreign_transaction_fee_percent": "0",
+      "point_value_cents": "1.0",
+      "rules": [
+        {
+          "id": "savor-dining-ent",
+          "label": "3% dining, entertainment, streaming",
+          "categories": [
+            "dining",
+            "entertainment",
+            "streaming"
+          ],
+          "rate": "3",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "savor-grocery",
+          "label": "3% grocery stores",
+          "categories": [
+            "grocery"
+          ],
+          "rate": "3",
+          "unit": "cashback_percent",
+          "notes": "Grocery stores only; superstores and wholesale clubs excluded.",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "savor-base",
+          "label": "1% everything else",
+          "rate": "1",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ],
+      "signup_bonus": {
+        "points": "25000",
+        "spend_required": "500",
+        "within_months": 3,
+        "unit": "points",
+        "provenance": {
+          "quote": null,
+          "source_url": null,
+          "extracted_on": null,
+          "verified_by_human": false
+        }
+      }
+    },
+    {
+      "id": "capital-one-venture-x",
+      "issuer": "Capital One",
+      "name": "Venture X",
+      "network": "Visa",
+      "annual_fee": "395",
+      "foreign_transaction_fee_percent": "0",
+      "point_value_cents": "1.7",
+      "rules": [
+        {
+          "id": "vx-portal-hotel",
+          "label": "10x hotels and car rentals via Capital One Travel",
+          "categories": [
+            "hotel",
+            "car_rental"
+          ],
+          "rate": "10",
+          "unit": "miles",
+          "requires_portal": "Capital One Travel",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "vx-portal-air",
+          "label": "5x flights via Capital One Travel",
+          "categories": [
+            "airfare"
+          ],
+          "rate": "5",
+          "unit": "miles",
+          "requires_portal": "Capital One Travel",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "vx-base",
+          "label": "2x everything else",
+          "rate": "2",
+          "unit": "miles",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ],
+      "signup_bonus": {
+        "points": "75000",
+        "spend_required": "4000",
+        "within_months": 3,
+        "unit": "miles",
+        "provenance": {
+          "quote": null,
+          "source_url": null,
+          "extracted_on": null,
+          "verified_by_human": false
+        }
+      }
+    },
+    {
+      "id": "discover-it",
+      "issuer": "Discover",
+      "name": "Discover it Cash Back",
+      "network": "Discover",
+      "annual_fee": "0",
+      "foreign_transaction_fee_percent": "0",
+      "point_value_cents": "1.0",
+      "rules": [
+        {
+          "id": "discover-rotating-q4",
+          "label": "5% rotating category (Q4)",
+          "categories": [
+            "online_retail",
+            "superstore"
+          ],
+          "rate": "5",
+          "unit": "cashback_percent",
+          "cap": {
+            "amount": "1500",
+            "basis": "spend",
+            "period": "calendar_quarter"
+          },
+          "active_quarters": [
+            4
+          ],
+          "requires_activation": true,
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "discover-base",
+          "label": "1% everything else",
+          "rate": "1",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "wells-fargo-active-cash",
+      "issuer": "Wells Fargo",
+      "name": "Active Cash",
+      "network": "Visa",
+      "annual_fee": "0",
+      "foreign_transaction_fee_percent": "3",
+      "point_value_cents": "1.0",
+      "rules": [
+        {
+          "id": "wfac-base",
+          "label": "2% everything",
+          "rate": "2",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "apple-card",
+      "issuer": "Goldman Sachs",
+      "name": "Apple Card",
+      "network": "Mastercard",
+      "annual_fee": "0",
+      "foreign_transaction_fee_percent": "0",
+      "point_value_cents": "1.0",
+      "rules": [
+        {
+          "id": "apple-pay-2pct",
+          "label": "2% via Apple Pay",
+          "rate": "2",
+          "unit": "cashback_percent",
+          "requires_portal": "Apple Pay",
+          "notes": "The 2% requires paying with Apple Pay rather than the physical card, which makes this card a direct beneficiary of a tap-time recommendation.",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "apple-card-base",
+          "label": "1% with the physical card",
+          "rate": "1",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "amazon-prime-visa",
+      "issuer": "Chase",
+      "name": "Prime Visa",
+      "network": "Visa",
+      "annual_fee": "0",
+      "foreign_transaction_fee_percent": "0",
+      "point_value_cents": "1.0",
+      "rules": [
+        {
+          "id": "prime-online-retail",
+          "label": "5% Amazon and Whole Foods",
+          "categories": [
+            "online_retail"
+          ],
+          "rate": "5",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "prime-dining-gas-drug",
+          "label": "2% dining, gas, drugstores",
+          "categories": [
+            "dining",
+            "gas",
+            "drugstore"
+          ],
+          "rate": "2",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        },
+        {
+          "id": "prime-base",
+          "label": "1% everything else",
+          "rate": "1",
+          "unit": "cashback_percent",
+          "provenance": {
+            "verified_by_human": false
+          }
+        }
+      ]
+    }
+  ]
+}

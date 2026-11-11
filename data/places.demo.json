@@ -1,0 +1,78 @@
+{
+  "_comment": [
+    "DEMO FIXTURE, not real survey data. Coordinates are approximate and the",
+    "store list is illustrative. It exists so a live demo never depends on a",
+    "flaky free geocoding service. Swap in Google Places or Foursquare via the",
+    "PlaceProvider protocol for anything real.",
+    "Centred on the Valley Fair / Santana Row area of San Jose, CA."
+  ],
+  "center": { "lat": 37.3258, "lon": -121.946 },
+  "places": [
+    {
+      "id": "tj-valley-fair",
+      "name": "Trader Joe's",
+      "lat": 37.327,
+      "lon": -121.949,
+      "osm": { "shop": "supermarket" }
+    },
+    {
+      "id": "target-valley-fair",
+      "name": "Target",
+      "lat": 37.324,
+      "lon": -121.943,
+      "osm": { "shop": "department_store" }
+    },
+    {
+      "id": "starbucks-stevens-creek",
+      "name": "Starbucks",
+      "lat": 37.3262,
+      "lon": -121.9465,
+      "osm": { "amenity": "cafe" }
+    },
+    {
+      "id": "chevron-stevens-creek",
+      "name": "Chevron",
+      "lat": 37.3285,
+      "lon": -121.9445,
+      "osm": { "amenity": "fuel" }
+    },
+    {
+      "id": "cvs-stevens-creek",
+      "name": "CVS Pharmacy",
+      "lat": 37.3248,
+      "lon": -121.9478,
+      "osm": { "amenity": "pharmacy" }
+    },
+    {
+      "id": "safeway-stevens-creek",
+      "name": "Safeway",
+      "lat": 37.3231,
+      "lon": -121.9502,
+      "osm": { "shop": "supermarket" }
+    },
+    {
+      "id": "costco-san-jose",
+      "name": "Costco Wholesale",
+      "lat": 37.33,
+      "lon": -121.94,
+      "osm": { "shop": "wholesale" }
+    },
+    {
+      "id": "valley-fair",
+      "name": "Westfield Valley Fair",
+      "lat": 37.3258,
+      "lon": -121.946,
+      "osm": { "shop": "mall" },
+      "is_mall": true,
+      "radius_m": 220,
+      "stores": [
+        { "name": "Din Tai Fung", "osm": { "amenity": "restaurant" } },
+        { "name": "Apple Store", "osm": { "shop": "electronics" } },
+        { "name": "Nordstrom", "osm": { "shop": "department_store" } },
+        { "name": "Sephora", "osm": { "shop": "cosmetics" } },
+        { "name": "Lululemon", "osm": { "shop": "clothes" } },
+        { "name": "Shake Shack", "osm": { "amenity": "fast_food" } }
+      ]
+    }
+  ]
+}

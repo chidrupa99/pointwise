@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "DEMO FIXTURE. Replaced by PayPal Transaction Search once credentials are",
+    "configured. card_id is which card actually paid -- PayPal's reporting API",
+    "does not tell you that unless the purchase was routed through our own",
+    "checkout, so for anything else the honest value is null."
+  ],
+  "activity": [
+    { "transaction_id": "t-1041", "merchant_name": "Whole Foods", "amount": "184.22", "on": "2026-10-24", "card_id": "citi-double-cash" },
+    { "transaction_id": "t-1040", "merchant_name": "Din Tai Fung", "amount": "96.50", "on": "2026-10-23", "card_id": "amex-gold" },
+    { "transaction_id": "t-1039", "merchant_name": "Shell", "amount": "62.10", "on": "2026-10-22", "card_id": "amex-blue-cash-preferred" },
+    { "transaction_id": "t-1038", "merchant_name": "Walmart", "amount": "142.80", "on": "2026-10-21", "card_id": "capital-one-venture-x" },
+    { "transaction_id": "t-1037", "merchant_name": "Netflix", "amount": "22.99", "on": "2026-10-20", "card_id": "chase-freedom-unlimited" },
+    { "transaction_id": "t-1036", "merchant_name": "Starbucks", "amount": "11.40", "on": "2026-10-19", "card_id": "amex-gold" },
+    { "transaction_id": "t-1035", "merchant_name": "Costco Wholesale", "amount": "312.65", "on": "2026-10-18", "card_id": "citi-double-cash" },
+    { "transaction_id": "t-1034", "merchant_name": "United Airlines", "amount": "684.00", "on": "2026-10-16", "card_id": "chase-sapphire-preferred" },
+    { "transaction_id": "t-1033", "merchant_name": "CVS", "amount": "38.75", "on": "2026-10-15", "card_id": "chase-freedom-unlimited" },
+    { "transaction_id": "t-1032", "merchant_name": "Trader Joe's", "amount": "127.30", "on": "2026-10-14", "card_id": "amex-gold" },
+    { "transaction_id": "t-1031", "merchant_name": "Marriott", "amount": "429.00", "on": "2026-10-11", "card_id": "capital-one-venture-x" },
+    { "transaction_id": "t-1030", "merchant_name": "Amazon", "amount": "88.14", "on": "2026-10-09", "card_id": "citi-double-cash" },
+    { "transaction_id": "t-1029", "merchant_name": "Chipotle", "amount": "27.65", "on": "2026-10-08", "card_id": "wells-fargo-active-cash" },
+    { "transaction_id": "t-1028", "merchant_name": "Safeway", "amount": "76.40", "on": "2026-10-06", "card_id": "amex-blue-cash-preferred" },
+    { "transaction_id": "t-1027", "merchant_name": "Chevron", "amount": "54.20", "on": "2026-10-04", "card_id": "citi-double-cash" },
+    { "transaction_id": "t-1026", "merchant_name": "Spotify", "amount": "11.99", "on": "2026-10-02", "card_id": "amex-blue-cash-preferred" },
+    { "transaction_id": "t-1025", "merchant_name": "Target", "amount": "203.55", "on": "2026-09-30", "card_id": "amex-gold" },
+    { "transaction_id": "t-1024", "merchant_name": "Uber", "amount": "32.80", "on": "2026-09-28", "card_id": "chase-sapphire-preferred" }
+  ]
+}

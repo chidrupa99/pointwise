@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pointwise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#f6f7f9; --surface:#ffffff; --sunk:#eef0f4;
+  --ink:#14192b; --ink-soft:#4e576e; --ink-faint:#7d869b;
+  --rule:#d8dce5; --rule-soft:#e6e9f0;
+  --accent:#1b3f8f; --accent-ink:#ffffff; --accent-soft:#e8edf8;
+  --ok:#0f6b57; --ok-soft:#e2f0eb;
+  --warn:#8e5308; --warn-soft:#f8eddc;
+  --stop:#962038; --stop-soft:#fbe7eb;
+  --shadow:0 1px 2px rgba(20,25,43,.05), 0 10px 30px -18px rgba(20,25,43,.3);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0d1020; --surface:#161b2e; --sunk:#1d2338;
+    --ink:#e8ebf3; --ink-soft:#a7b0c6; --ink-faint:#7b85a0;
+    --rule:#2c3450; --rule-soft:#232a42;
+    --accent:#8fb0f0; --accent-ink:#0d1020; --accent-soft:#1b2440;
+    --ok:#5fc4a5; --ok-soft:#142c28;
+    --warn:#e0a860; --warn-soft:#2e2415;
+    --stop:#f08098; --stop-soft:#31161f;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 34px -20px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0d1020; --surface:#161b2e; --sunk:#1d2338;
+  --ink:#e8ebf3; --ink-soft:#a7b0c6; --ink-faint:#7b85a0;
+  --rule:#2c3450; --rule-soft:#232a42;
+  --accent:#8fb0f0; --accent-ink:#0d1020; --accent-soft:#1b2440;
+  --ok:#5fc4a5; --ok-soft:#142c28;
+  --warn:#e0a860; --warn-soft:#2e2415;
+  --stop:#f08098; --stop-soft:#31161f;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 34px -20px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Archivo",'Helvetica Neue',Arial,sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.mono,.fig{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.app{max-width:520px;margin:0 auto;padding:28px 16px 72px}
+
+header{margin-bottom:24px}
+.brand{display:flex;align-items:baseline;gap:10px}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin:0}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:.68rem;color:var(--ink-faint);letter-spacing:.04em}
+.sub{color:var(--ink-soft);font-size:.9rem;margin:6px 0 0}
+
+/* ---------- ask panel ---------- */
+.panel{
+  background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+  padding:18px;box-shadow:var(--shadow);margin-bottom:18px;
+}
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+label{
+  font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-faint);
+}
+input[type=text],input[type=number],select{
+  font:inherit;color:var(--ink);background:var(--ground);
+  border:1px solid var(--rule);border-radius:7px;padding:10px 12px;width:100%;
+}
+input:focus-visible,select:focus-visible,button:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;
+}
+.row{display:grid;grid-template-columns:1fr 128px;gap:12px}
+@media (max-width:420px){.row{grid-template-columns:1fr}}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip-btn{
+  font:inherit;font-size:.78rem;cursor:pointer;
+  background:var(--sunk);color:var(--ink-soft);
+  border:1px solid var(--rule);border-radius:999px;padding:5px 11px;
+}
+.chip-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.toggles{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.toggle{display:flex;align-items:center;gap:7px;font-size:.85rem;color:var(--ink-soft);
+  cursor:pointer;text-transform:none;letter-spacing:normal;font-weight:400}
+.toggle input{accent-color:var(--accent);width:15px;height:15px}
+
+input[type=range]{width:100%;accent-color:var(--accent)}
+.slider-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider-head .fig{font-size:.82rem;color:var(--ink)}
+
+button.go{
+  font:inherit;font-weight:600;font-size:.95rem;cursor:pointer;width:100%;
+  background:var(--accent);color:var(--accent-ink);
+  border:0;border-radius:7px;padding:12px;margin-top:4px;
+}
+button.go:hover{filter:brightness(1.08)}
+button.go:disabled{opacity:.5;cursor:default}
+
+/* ---------- resolution ---------- */
+.resolve{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  font-size:.8rem;color:var(--ink-soft);margin:0 0 14px;padding:0 2px;
+}
+.pill{
+  font-family:"IBM Plex Mono",monospace;font-size:.72rem;
+  background:var(--accent-soft);color:var(--accent);
+  border-radius:4px;padding:3px 8px;
+}
+.pill.unresolved{background:var(--warn-soft);color:var(--warn)}
+
+/* ---------- winner ---------- */
+.winner{
+  background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--ok);
+  border-radius:10px;padding:20px;box-shadow:var(--shadow);margin-bottom:12px;
+}
+.winner .eyebrow{
+  font-size:.66rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ok);display:block;margin-bottom:8px;
+}
+.winner h2{font-size:1.32rem;font-weight:700;letter-spacing:-.02em;margin:0 0 2px}
+.winner .issuer{font-size:.8rem;color:var(--ink-faint)}
+.winner .amount{
+  font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  font-size:2.3rem;font-weight:500;letter-spacing:-.03em;line-height:1.1;margin:12px 0 2px;
+}
+.winner .gap{font-size:.88rem;color:var(--ink-soft)}
+.winner .gap b{color:var(--ok);font-weight:600}
+
+/* ---------- ranked list ---------- */
+.list{display:flex;flex-direction:column;gap:8px}
+.card{
+  background:var(--surface);border:1px solid var(--rule);border-radius:9px;overflow:hidden;
+}
+.card summary{
+  cursor:pointer;list-style:none;padding:13px 16px;
+  display:grid;grid-template-columns:22px 1fr auto;gap:12px;align-items:center;
+}
+.card summary::-webkit-details-marker{display:none}
+.card summary:hover{background:var(--sunk)}
+.rank{font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--ink-faint)}
+.cname{font-weight:600;font-size:.95rem;line-height:1.25}
+.cmeta{font-size:.74rem;color:var(--ink-faint)}
+.cvalue{text-align:right}
+.cvalue .v{
+  font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  font-size:1.02rem;font-weight:500;
+}
+.cvalue .r{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--ink-faint)}
+.neg .v{color:var(--stop)}
+
+.body{padding:0 16px 14px;border-top:1px solid var(--rule-soft)}
+.math{margin:12px 0 0;display:flex;flex-direction:column;gap:5px}
+.leg{
+  display:grid;grid-template-columns:1fr auto;gap:10px;align-items:baseline;
+  font-family:"IBM Plex Mono",monospace;font-size:.76rem;color:var(--ink-soft);
+  font-variant-numeric:tabular-nums;
+}
+.leg .lbl{color:var(--ink)}
+.leg .why{color:var(--ink-faint);font-size:.72rem}
+.caveat{
+  display:flex;gap:7px;font-size:.78rem;color:var(--warn);
+  background:var(--warn-soft);border-radius:6px;padding:8px 10px;margin-top:9px;
+}
+.caveat::before{content:"!";font-weight:700;flex:none}
+.dq{color:var(--stop);background:var(--stop-soft)}
+.unver{font-size:.72rem;color:var(--ink-faint);margin-top:9px;font-family:"IBM Plex Mono",monospace}
+
+.excluded{margin-top:16px}
+.excluded .h{
+  font-size:.66rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-faint);margin-bottom:7px;
+}
+
+.notice{
+  margin-top:26px;padding:14px 16px;border-radius:8px;
+  background:var(--stop-soft);border:1px solid var(--stop);
+  font-size:.8rem;line-height:1.5;color:var(--ink);
+}
+.notice b{color:var(--stop)}
+.audit{
+  margin-top:12px;font-family:"IBM Plex Mono",monospace;font-size:.7rem;
+  color:var(--ink-faint);text-align:center;
+}
+.empty{color:var(--ink-faint);font-size:.88rem;text-align:center;padding:32px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand"><h1>Pointwise</h1><span class="tag">which card, and why</span></div>
+    <p class="sub">Ranked by what each card actually pays, not by its headline rate.</p>
+  </header>
+
+  <div class="panel">
+    <div class="field">
+      <label for="merchant">Merchant</label>
+      <div class="row">
+        <input type="text" id="merchant" value="Trader Joe's" autocomplete="off" placeholder="e.g. Trader Joe's">
+        <input type="number" id="amount" value="120" min="1" step="1" aria-label="Amount in dollars">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Try a tricky one</label>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div class="field">
+      <label for="portal">Booking channel</label>
+      <select id="portal">
+        <option value="">None — paid directly</option>
+        <option>Apple Pay</option>
+        <option>Chase Travel</option>
+        <option>Capital One Travel</option>
+        <option>Amex Travel</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <div class="slider-head">
+        <label for="spent">Already spent in this category this year</label>
+        <span class="fig" id="spentOut">$0</span>
+      </div>
+      <input type="range" id="spent" min="0" max="26000" step="100" value="0">
+    </div>
+
+    <div class="field">
+      <div class="toggles">
+        <label class="toggle"><input type="checkbox" id="foreign" aria-label="Foreign transaction"> Foreign transaction</label>
+        <label class="toggle"><input type="checkbox" id="activated" checked aria-label="Rotating categories activated"> Rotating categories activated</label>
+      </div>
+    </div>
+
+    <button class="go" id="go">Which card?</button>
+  </div>
+
+  <div id="out"><p class="empty">Enter a purchase to see the ranking.</p></div>
+
+  <div class="notice">
+    <b>Unverified data.</b> Every rule in the seed corpus ships
+    <span class="mono">verified_by_human: false</span>. The rates come from publicly
+    advertised terms and must be checked against each issuer's current cardmember
+    agreement before any of these dollar figures is shown to a real user.
+  </div>
+  <p class="audit" id="audit"></p>
+
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const money = (s) => {
+  const n = Number(s);
+  return (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US",
+    {minimumFractionDigits: 2, maximumFractionDigits: 2});
+};
+
+const EXAMPLES = [
+  ["Trader Joe's", 120, "a real supermarket"],
+  ["Walmart", 120, "codes as a discount store"],
+  ["Costco", 240, "wholesale club"],
+  ["Starbucks", 8, "fast food"],
+  ["Amazon", 95, "direct marketing"],
+  ["United Airlines", 1200, "airfare"],
+  ["Marriott", 600, "hotel"],
+  ["Shell", 60, "gas"],
+];
+
+$("chips").innerHTML = EXAMPLES.map(([m, a], i) =>
+  `<button class="chip-btn" data-i="${i}" title="${EXAMPLES[i][2]}" aria-label="${m} — ${EXAMPLES[i][2]}">${m}</button>`).join("");
+$("chips").addEventListener("click", (e) => {
+  const b = e.target.closest(".chip-btn");
+  if (!b) return;
+  const [m, a] = EXAMPLES[Number(b.dataset.i)];
+  $("merchant").value = m; $("amount").value = a;
+  run();
+});
+
+$("spent").addEventListener("input", () => {
+  $("spentOut").textContent = "$" + Number($("spent").value).toLocaleString("en-US");
+});
+
+const ROTATING = ["flex-rotating-q4-grocery", "discover-rotating-q4"];
+
+function legend(c) {
+  const unit = c.unit === "cashback_percent" ? "%" : "x";
+  const qty = c.unit === "cashback_percent" ? "" :
+    ` → ${Number(c.reward_quantity).toLocaleString("en-US")} pts`;
+  return `<div class="leg">
+    <span><span class="lbl">${money(c.spend_applied)} @ ${c.rate}${unit}</span>${qty}
+      <span class="why">· ${c.reason}</span></span>
+    <span>${money(c.value_dollars)}</span>
+  </div>`;
+}
+
+function cardRow(ev, i) {
+  const neg = Number(ev.net_value_dollars) < 0 ? " neg" : "";
+  const fee = Number(ev.fees_dollars) > 0
+    ? `<div class="leg"><span class="lbl">foreign transaction fee</span><span>−${money(ev.fees_dollars)}</span></div>` : "";
+  return `<details class="card${neg}"${i === 0 ? " open" : ""}>
+    <summary>
+      <span class="rank">${String(i + 1).padStart(2, "0")}</span>
+      <span><span class="cname">${ev.card_name}</span>
+        <div class="cmeta">${ev.issuer}${Number(ev.annual_fee) > 0 ? ` · $${ev.annual_fee}/yr` : " · no annual fee"}</div></span>
+      <span class="cvalue"><div class="v">${money(ev.net_value_dollars)}</div>
+        <div class="r">${ev.effective_rate_percent}%</div></span>
+    </summary>
+    <div class="body">
+      <div class="math">${ev.components.map(legend).join("")}${fee}</div>
+      ${ev.caveats.map((c) => `<div class="caveat">${c}</div>`).join("")}
+      ${ev.unverified_rules.length
+        ? `<div class="unver">unverified: ${ev.unverified_rules.join(", ")}</div>` : ""}
+    </div>
+  </details>`;
+}
+
+async function run() {
+  $("go").disabled = true;
+  const body = {
+    merchant: $("merchant").value,
+    amount: $("amount").value || "1",
+    portal: $("portal").value || null,
+    is_foreign: $("foreign").checked,
+    category_spend_to_date: $("spent").value,
+    activated_rule_ids: $("activated").checked ? ROTATING : [],
+  };
+  let d;
+  try {
+    const r = await fetch("/api/recommend", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    d = await r.json();
+  } catch (err) {
+    $("out").innerHTML = `<p class="empty">Could not reach the engine — ${err.message}.
+      Check that the server is running on port 8077.</p>`;
+    $("go").disabled = false;
+    return;
+  }
+
+  const best = d.ranked[0];
+  const rest = d.ranked.slice(1);
+
+  const resolve = `<p class="resolve">
+    resolved to <span class="pill${d.resolved ? "" : " unresolved"}">${d.category}</span>
+    <span>via ${d.provenance}</span>
+    ${d.resolved ? "" : "<span>— unknown merchant, so this is a floor rather than a prediction</span>"}
+  </p>`;
+
+  const hero = best ? `<div class="winner">
+    <span class="eyebrow">Use this one</span>
+    <h2>${best.card_name}</h2>
+    <div class="issuer">${best.issuer}</div>
+    <div class="amount">${money(best.net_value_dollars)}</div>
+    <div class="gap">${best.effective_rate_percent}% effective${
+      Number(d.advantage_dollars) > 0
+        ? ` · <b>${money(d.advantage_dollars)} better</b> than ${d.ranked[1].card_name}`
+        : ""}</div>
+  </div>` : `<p class="empty">No eligible card.</p>`;
+
+  const excluded = d.excluded.length ? `<div class="excluded">
+    <div class="h">Excluded</div>
+    <div class="list">${d.excluded.map((ev) =>
+      `<div class="card"><div class="body"><div class="caveat dq">${ev.card_name}: ${ev.disqualified_reason}</div></div></div>`).join("")}</div>
+  </div>` : "";
+
+  $("out").innerHTML = resolve + hero +
+    `<div class="list">${[best, ...rest].filter(Boolean).map(cardRow).join("")}</div>` + excluded;
+  $("go").disabled = false;
+}
+
+$("go").addEventListener("click", run);
+["merchant", "amount"].forEach((id) =>
+  $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") run(); }));
+["portal", "foreign", "activated"].forEach((id) => $(id).addEventListener("change", run));
+$("spent").addEventListener("change", run);
+
+fetch("/api/cards").then((r) => r.json())
+  .then((d) => { $("audit").textContent = d.audit.summary; })
+  .catch(() => {});
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pointwise",
+      "runtimeExecutable": ".venv/bin/uvicorn",
+      "runtimeArgs": ["pointwise.api:app", "--reload", "--port", "8077", "--app-dir", "src"],
+      "port": 8077
+    }
+  ]
+}
