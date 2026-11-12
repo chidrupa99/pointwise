@@ -316,7 +316,7 @@ const styles = (t: Theme) =>
       // over orange. Reserving the same below keeps whatever follows clear
       // of the band's edge instead of butting against it; that element's own
       // top margin then provides the gap under the edge.
-      marginBottom: space.xl,
+      marginBottom: space.lg,
     },
     inviteBanner: {
       backgroundColor: t.surface,

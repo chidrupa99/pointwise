@@ -361,14 +361,14 @@ const styles = (t: Theme) =>
     spinner: { marginTop: space.xxl },
 
     section: { ...SECTION_CAPS, color: t.inkFaint },
-    sectionPad: { marginTop: space.xl, marginBottom: space.md },
+    sectionPad: { marginTop: space.lg, marginBottom: space.sm },
 
-    railOuter: { marginHorizontal: -space.lg, marginBottom: space.md },
+    railOuter: { marginHorizontal: -space.lg, marginBottom: space.sm },
     dots: {
       flexDirection: 'row',
       justifyContent: 'center',
       gap: space.sm,
-      marginBottom: space.xl,
+      marginBottom: space.lg,
     },
     dot: {
       width: 6,

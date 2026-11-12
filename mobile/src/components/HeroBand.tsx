@@ -45,10 +45,10 @@ const BAND_RULE = 'rgba(253,246,238,0.34)';
  * height. Growing the band's bottom padding moves the edge and the element
  * down together and changes nothing.
  *
- * The location banner is about 53 tall, so this leaves roughly 24 beneath
- * it -- the same gap it has at its sides, and the same it has above.
+ * The location banner is about 53 tall, so this leaves roughly 16 beneath
+ * it, matching the rest of the page's rhythm.
  */
-export const RAIL_LIFT = 78;
+export const RAIL_LIFT = 70;
 
 export function HeroBand({
   theme,
@@ -142,7 +142,7 @@ export function HeroBand({
 const s = StyleSheet.create({
   band: {
     paddingHorizontal: space.lg,
-    paddingBottom: RAIL_LIFT + space.lg,
+    paddingBottom: RAIL_LIFT + space.md,
     borderBottomLeftRadius: radius.xl,
     borderBottomRightRadius: radius.xl,
   },
@@ -182,7 +182,7 @@ const s = StyleSheet.create({
   },
   bar: { width: 14, height: 1.5, borderRadius: 1, backgroundColor: BAND_INK },
 
-  hero: { paddingTop: space.xxl, paddingBottom: space.sm },
+  hero: { paddingTop: space.xl, paddingBottom: space.sm },
   label: { ...SECTION_CAPS, color: BAND_INK_FAINT },
   value: {
     ...type.hero,
