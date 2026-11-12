@@ -117,9 +117,10 @@ export function CardTile({
             offer progress worth showing either -- the bar would be measuring
             spend we cannot see -- so the two never compete for the space.
 
-            Naming the issuer is the point: "connect your bank" leaves the
-            user working out which of theirs, and the one that can close this
-            gap is the one that issued this card. */}
+            Just "Connect". The issuer's name wrapped this pill onto two
+            lines at tile width, and it is redundant anyway: the card it sits
+            on already says whose it is. The full phrasing stays as the
+            accessibility label, where length costs nothing. */}
         {!card.statement_linked ? (
           <Pressable
             accessibilityRole="button"
@@ -133,7 +134,7 @@ export function CardTile({
             ]}
           >
             <Text style={[s.connectText, { color: finish.on }]}>
-              Connect {card.issuer} &rarr;
+              Connect &rarr;
             </Text>
           </Pressable>
         ) : (
