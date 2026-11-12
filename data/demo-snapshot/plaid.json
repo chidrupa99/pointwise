@@ -1,0 +1,32 @@
+{
+  "links": [
+    {
+      "item_id": "5A4VKn6151snJkWLw6oXf3y4dgbGdbSxLQBZr",
+      "access_token": "access-sandbox-REDACTED-SEE-README",
+      "institution_name": "American Express",
+      "accounts": [
+        {
+          "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+          "label": "Credit card ••7409",
+          "card_id": "amex-gold"
+        }
+      ],
+      "cursor": "CAESJWR6REo0TThBWkFmbkV2N3JHTm1iZktBN1F5OG5LWFNKWmVqYnoaDAjkltXXBhDgq9PQAyIMCOSW1dcGEOCr09ADKgwI5JbV1wYQ4KvT0AM=",
+      "linked_at": "2026-11-11T21:15:14.075140"
+    },
+    {
+      "item_id": "a89X1nGXqviG13eaoKKzTLGDqnnvVvfRovLzP",
+      "access_token": "access-sandbox-REDACTED-SEE-README",
+      "institution_name": "Capital One",
+      "accounts": [
+        {
+          "account_id": "BM9ZpVWZBEUgpxKQ1LLyHz3E5Ky7pafzZEqQd",
+          "label": "Credit card ••2874",
+          "card_id": "capital-one-venture-x"
+        }
+      ],
+      "cursor": "CAESJWE4OVgxbkdYcXZpRzEzZWFvS0t6VExHeExHVmJtNWlrUXZFYVgaCwjxltXXBhDowdciIgsI8ZbV1wYQ6MHXIioLCPGW1dcGEOjB1yI=",
+      "linked_at": "2026-11-11T21:15:24.237807"
+    }
+  ]
+}

@@ -1,0 +1,247 @@
+{
+  "_comment": "Synced from Plaid. Derived data; safe to delete.",
+  "transactions": [
+    {
+      "transaction_id": "pQPXoM9dAdtAbRBxG1n4I7N1V5oDRZuJ3kxzL",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "Whole Foods",
+      "amount": "127.43",
+      "on": "2026-11-10",
+      "category_primary": "FOOD_AND_DRINK",
+      "category_detailed": "FOOD_AND_DRINK_GROCERIES",
+      "pending": false
+    },
+    {
+      "transaction_id": "VjrLdMmLEvfrGdvN6yyDTDA8JajVk7FqKNQPJ",
+      "account_id": "BM9ZpVWZBEUgpxKQ1LLyHz3E5Ky7pafzZEqQd",
+      "card_id": "capital-one-venture-x",
+      "merchant_name": "Chipotle Mexican Grill",
+      "amount": "19.4",
+      "on": "2026-11-09",
+      "category_primary": "FOOD_AND_DRINK",
+      "category_detailed": "FOOD_AND_DRINK_FAST_FOOD",
+      "pending": false
+    },
+    {
+      "transaction_id": "Le4bEpozPzSBZLp1ya3wSvzVKdWqn8FeGoJEL",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "Apple Store",
+      "amount": "1199",
+      "on": "2026-11-08",
+      "category_primary": "GENERAL_MERCHANDISE",
+      "category_detailed": "GENERAL_MERCHANDISE_ELECTRONICS",
+      "pending": false
+    },
+    {
+      "transaction_id": "1g4wX6mDWDILlQjDr3KvfK7qWr9zkjTql3wrb",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "Shake Shack",
+      "amount": "34.8",
+      "on": "2026-11-06",
+      "category_primary": "FOOD_AND_DRINK",
+      "category_detailed": "FOOD_AND_DRINK_FAST_FOOD",
+      "pending": false
+    },
+    {
+      "transaction_id": "DLVqglGqkAuGZmna7EEKT5pDj7QPeKs46GNa5",
+      "account_id": "BM9ZpVWZBEUgpxKQ1LLyHz3E5Ky7pafzZEqQd",
+      "card_id": "capital-one-venture-x",
+      "merchant_name": "United Airlines",
+      "amount": "427.6",
+      "on": "2026-11-05",
+      "category_primary": "TRAVEL",
+      "category_detailed": "TRAVEL_FLIGHTS",
+      "pending": false
+    },
+    {
+      "transaction_id": "MQjZWgoBPBt3kpgL7dyZhnZBpaeMdxF4Vzo1A",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "Costco",
+      "amount": "214.67",
+      "on": "2026-11-03",
+      "category_primary": "GENERAL_MERCHANDISE",
+      "category_detailed": "GENERAL_MERCHANDISE_SUPERSTORES",
+      "pending": false
+    },
+    {
+      "transaction_id": "XeBG4LRGAvhoN4kKPbbMHGlJqokXgpI1e8knA",
+      "account_id": "BM9ZpVWZBEUgpxKQ1LLyHz3E5Ky7pafzZEqQd",
+      "card_id": "capital-one-venture-x",
+      "merchant_name": "Amazon",
+      "amount": "73.29",
+      "on": "2026-10-31",
+      "category_primary": "GENERAL_MERCHANDISE",
+      "category_detailed": "GENERAL_MERCHANDISE_ONLINE_MARKETPLACES",
+      "pending": false
+    },
+    {
+      "transaction_id": "Zn8jlEeGBGuvEnxbzr5XHqkQzgymvLuJVzjGv",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "Zuni Caf\u00e9",
+      "amount": "142",
+      "on": "2026-10-29",
+      "category_primary": "FOOD_AND_DRINK",
+      "category_detailed": "FOOD_AND_DRINK_RESTAURANT",
+      "pending": false
+    },
+    {
+      "transaction_id": "63d6aA46GjTgLkGyRBBQH9Jly4vR7Zc1dnQXD",
+      "account_id": "BM9ZpVWZBEUgpxKQ1LLyHz3E5Ky7pafzZEqQd",
+      "card_id": "capital-one-venture-x",
+      "merchant_name": "Shell",
+      "amount": "58.4",
+      "on": "2026-10-27",
+      "category_primary": "TRANSPORTATION",
+      "category_detailed": "TRANSPORTATION_GAS",
+      "pending": false
+    },
+    {
+      "transaction_id": "QLXWbpmaZauvgnPW7b1JHRALxjQX8oFGEzdDV",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "Trader Joe's",
+      "amount": "86.2",
+      "on": "2026-10-25",
+      "category_primary": "FOOD_AND_DRINK",
+      "category_detailed": "FOOD_AND_DRINK_GROCERIES",
+      "pending": false
+    },
+    {
+      "transaction_id": "RaoMz7AMpvHX3zLGeQQAHe1mwrnqjgSPn5Nbk",
+      "account_id": "BM9ZpVWZBEUgpxKQ1LLyHz3E5Ky7pafzZEqQd",
+      "card_id": "capital-one-venture-x",
+      "merchant_name": "Hilton Hotels & Resorts",
+      "amount": "389",
+      "on": "2026-10-22",
+      "category_primary": "TRAVEL",
+      "category_detailed": "TRAVEL_LODGING",
+      "pending": false
+    },
+    {
+      "transaction_id": "eBPJNM18w8uJno7Wr6xAHQne5X9xp3ua1EwmQ",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "Marriott",
+      "amount": "612",
+      "on": "2026-10-20",
+      "category_primary": "TRAVEL",
+      "category_detailed": "TRAVEL_LODGING",
+      "pending": false
+    },
+    {
+      "transaction_id": "vwADxaJDoZUWNpwDrEEPTVr3oLnNMeiv8Vbkb",
+      "account_id": "BM9ZpVWZBEUgpxKQ1LLyHz3E5Ky7pafzZEqQd",
+      "card_id": "capital-one-venture-x",
+      "merchant_name": "Safeway",
+      "amount": "64.88",
+      "on": "2026-10-17",
+      "category_primary": "FOOD_AND_DRINK",
+      "category_detailed": "FOOD_AND_DRINK_GROCERIES",
+      "pending": false
+    },
+    {
+      "transaction_id": "7naVzRlWXWug586qlzaRhVbEBx6dnrt8LjGxQ",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "Din Tai Fung",
+      "amount": "96.5",
+      "on": "2026-10-15",
+      "category_primary": "FOOD_AND_DRINK",
+      "category_detailed": "FOOD_AND_DRINK_RESTAURANT",
+      "pending": false
+    },
+    {
+      "transaction_id": "a89X1nGXqviG13eaoKKzTLGxLGVbm5ikQvEaX",
+      "account_id": "BM9ZpVWZBEUgpxKQ1LLyHz3E5Ky7pafzZEqQd",
+      "card_id": "capital-one-venture-x",
+      "merchant_name": "Uber",
+      "amount": "28.75",
+      "on": "2026-10-12",
+      "category_primary": "TRANSPORTATION",
+      "category_detailed": "TRANSPORTATION_TAXIS_AND_RIDE_SHARES",
+      "pending": false
+    },
+    {
+      "transaction_id": "dzDJ4M8AZAfnEv7rGNmbfKA7Qy8nKXSJZejbz",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "Best Buy",
+      "amount": "349.99",
+      "on": "2026-10-09",
+      "category_primary": "GENERAL_MERCHANDISE",
+      "category_detailed": "GENERAL_MERCHANDISE_ELECTRONICS",
+      "pending": false
+    },
+    {
+      "transaction_id": "dk8Xoy9XzvIB1a8pbkkxuKA4KAXa1MfBQqbMl",
+      "account_id": "BM9ZpVWZBEUgpxKQ1LLyHz3E5Ky7pafzZEqQd",
+      "card_id": "capital-one-venture-x",
+      "merchant_name": "Netflix",
+      "amount": "22.99",
+      "on": "2026-10-06",
+      "category_primary": "ENTERTAINMENT",
+      "category_detailed": "ENTERTAINMENT_TV_AND_MOVIES",
+      "pending": false
+    },
+    {
+      "transaction_id": "x8gXbD5ZKZiJxmBeon95HlBv4m9VlAC6nv3zM",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "CVS",
+      "amount": "23.15",
+      "on": "2026-10-03",
+      "category_primary": "MEDICAL",
+      "category_detailed": "MEDICAL_PHARMACIES_AND_SUPPLEMENTS",
+      "pending": false
+    },
+    {
+      "transaction_id": "xG5qaNmq81iDNpjQ5XXLSlBklBAQq3iyVZz7N",
+      "account_id": "BM9ZpVWZBEUgpxKQ1LLyHz3E5Ky7pafzZEqQd",
+      "card_id": "capital-one-venture-x",
+      "merchant_name": "The Home Depot",
+      "amount": "156.4",
+      "on": "2026-09-30",
+      "category_primary": "HOME_IMPROVEMENT",
+      "category_detailed": "HOME_IMPROVEMENT_HARDWARE",
+      "pending": false
+    },
+    {
+      "transaction_id": "3EGvlndDJDIXG86xwzlnHWxR1PXMW7FZq3DjV",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "Safeway",
+      "amount": "118.75",
+      "on": "2026-09-27",
+      "category_primary": "FOOD_AND_DRINK",
+      "category_detailed": "FOOD_AND_DRINK_GROCERIES",
+      "pending": false
+    },
+    {
+      "transaction_id": "3rdb38xbE4uVLJmZnNN4HWxGWx7dg4CmnLjr8",
+      "account_id": "BM9ZpVWZBEUgpxKQ1LLyHz3E5Ky7pafzZEqQd",
+      "card_id": "capital-one-venture-x",
+      "merchant_name": "Starbucks",
+      "amount": "44.1",
+      "on": "2026-09-23",
+      "category_primary": "FOOD_AND_DRINK",
+      "category_detailed": "FOOD_AND_DRINK_COFFEE",
+      "pending": false
+    },
+    {
+      "transaction_id": "BBD5eL9gkguMA4raWvk1Iz3Q8G7Kzqt4wnbpg",
+      "account_id": "lP91MmdzAzfdx9kv4wLRCQja7WgDWXia3yKD9",
+      "card_id": "amex-gold",
+      "merchant_name": "Tartine Bakery",
+      "amount": "61.3",
+      "on": "2026-09-19",
+      "category_primary": "FOOD_AND_DRINK",
+      "category_detailed": "FOOD_AND_DRINK_COFFEE",
+      "pending": false
+    }
+  ]
+}

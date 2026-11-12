@@ -1,0 +1,145 @@
+{
+  "_comment": "card_id -> PayPal funding source. Sandbox instruments only. Regenerate with scripts/vault_cards.py.",
+  "sources": [
+    {
+      "card_id": "amazon-prime-visa",
+      "kind": "vault_v1",
+      "vault_id": "CARD-8EC64362D9561822JNLQNTQY",
+      "network": "visa",
+      "brand": "visa",
+      "last4": "1111",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "amex-blue-cash-preferred",
+      "kind": "vault_v1",
+      "vault_id": "CARD-7BM696123J717224LNLQNTOY",
+      "network": "amex",
+      "brand": "amex",
+      "last4": "0005",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "amex-gold",
+      "kind": "vault_v1",
+      "vault_id": "CARD-10V75256WA779951HNLQNTOQ",
+      "network": "amex",
+      "brand": "amex",
+      "last4": "0005",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "amex-platinum",
+      "kind": "vault_v1",
+      "vault_id": "CARD-2WL186749G6316118NLQNTOY",
+      "network": "amex",
+      "brand": "amex",
+      "last4": "0005",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "apple-card",
+      "kind": "vault_v1",
+      "vault_id": "CARD-3RD30965ML902410HNLQNTQY",
+      "network": "mastercard",
+      "brand": "mastercard",
+      "last4": "4444",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "capital-one-savor",
+      "kind": "vault_v1",
+      "vault_id": "CARD-5MT63962BT269530PNLQNTQA",
+      "network": "mastercard",
+      "brand": "mastercard",
+      "last4": "4444",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "capital-one-venture-x",
+      "kind": "vault_v1",
+      "vault_id": "CARD-1JW29811HE428074VNLQNTQA",
+      "network": "visa",
+      "brand": "visa",
+      "last4": "1111",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "chase-freedom-flex",
+      "kind": "vault_v1",
+      "vault_id": "CARD-1P8799991S816991JNLQNTPI",
+      "network": "visa",
+      "brand": "visa",
+      "last4": "1111",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "chase-freedom-unlimited",
+      "kind": "vault_v1",
+      "vault_id": "CARD-3D4712936J703510BNLQNTPQ",
+      "network": "visa",
+      "brand": "visa",
+      "last4": "1111",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "chase-sapphire-preferred",
+      "kind": "vault_v1",
+      "vault_id": "CARD-0K3476676N9167906NLQNTPI",
+      "network": "visa",
+      "brand": "visa",
+      "last4": "1111",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "citi-custom-cash",
+      "kind": "vault_v1",
+      "vault_id": "CARD-8KY28659X59228320NLQNTPY",
+      "network": "mastercard",
+      "brand": "mastercard",
+      "last4": "4444",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "citi-double-cash",
+      "kind": "vault_v1",
+      "vault_id": "CARD-55563988XR879521HNLQNTPQ",
+      "network": "mastercard",
+      "brand": "mastercard",
+      "last4": "4444",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "discover-it",
+      "kind": "vault_v1",
+      "vault_id": "CARD-5TS294820W9687812NLQNTQI",
+      "network": "discover",
+      "brand": "discover",
+      "last4": "1117",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    },
+    {
+      "card_id": "wells-fargo-active-cash",
+      "kind": "vault_v1",
+      "vault_id": "CARD-4GE5646494498361RNLQNTQQ",
+      "network": "visa",
+      "brand": "visa",
+      "last4": "1111",
+      "provisioned_on": "2026-10-27",
+      "downgrade_reason": "vault v3 unavailable (NOT_AUTHORIZED)"
+    }
+  ]
+}
