@@ -312,7 +312,8 @@ const styles = (t: Theme) =>
       borderRadius: radius.lg,
       paddingVertical: space.md,
       paddingHorizontal: space.lg,
-      marginBottom: space.md,
+      // No bottom margin: whatever follows brings its own top spacing, and
+      // the two stacked to 36 where every other section break is 24.
     },
     inviteBanner: {
       backgroundColor: t.surface,
