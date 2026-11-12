@@ -44,7 +44,6 @@ interface Props {
 export function LocationBanner({ theme }: Props) {
   const s = styles(theme);
   const [state, setState] = useState<State>({ kind: 'idle' });
-  const [dismissed, setDismissed] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
 
   // Nothing found is not worth holding the top of the screen. Step back to
@@ -91,18 +90,41 @@ export function LocationBanner({ theme }: Props) {
     }
   }, []);
 
-  if (dismissed) return null;
 
-  const close = (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel="Dismiss location suggestion"
-      hitSlop={10}
-      onPress={() => setDismissed(true)}
-      style={({ pressed }) => [s.close, pressed && { opacity: 0.5 }]}
-    >
-      <Text style={s.closeText}>✕</Text>
-    </Pressable>
+  /**
+   * What to do with a result: look again, or put it away.
+   *
+   * Named buttons rather than a cross in the corner. A cross on the
+   * invitation was offering to remove the feature, which is not a thing
+   * anyone wants from a banner they have not used yet; on a result it was
+   * the only control, so "check again" had to be found elsewhere.
+   *
+   * Dismiss clears the result and goes back to the invitation rather than
+   * hiding the banner for the session. Putting a result away is not the same
+   * as saying you never want to be told where you are, and the second is not
+   * recoverable without relaunching.
+   */
+  const actions = (
+    <View style={s.actions}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Check this location again"
+        onPress={locate}
+        hitSlop={8}
+        style={({ pressed }) => [s.action, pressed && { opacity: 0.6 }]}
+      >
+        <Text style={s.actionText}>Refresh</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Clear this location result"
+        onPress={() => setState({ kind: 'idle' })}
+        hitSlop={8}
+        style={({ pressed }) => [s.action, pressed && { opacity: 0.6 }]}
+      >
+        <Text style={[s.actionText, s.actionQuiet]}>Dismiss</Text>
+      </Pressable>
+    </View>
   );
 
   const renderBest = (best: BestCard | null) => {
@@ -141,14 +163,19 @@ export function LocationBanner({ theme }: Props) {
           <View style={s.pin}>
             <PinIcon color={theme.accent} />
           </View>
-          {/* One sentence. The heading and the body underneath it said the
-              same thing twice, which is how a banner earns a dismissal. */}
+          {/* The sentence says what you get; the button says what to tap.
+              Before, the whole row was the target and nothing looked like a
+              control, so it read as a notice you were meant to close. */}
           <View style={s.flex}>
-            <Text style={s.inviteTitle}>
-              Check which card earns most where you are
+            {/* Short enough to sit on one line beside the button. Two
+                lines pushed the banner past the band's bottom edge. */}
+            <Text style={s.inviteTitle} numberOfLines={1}>
+              Best card where you are
             </Text>
           </View>
-          {close}
+          <View style={s.cta}>
+            <Text style={s.ctaText}>Check location</Text>
+          </View>
         </View>
       </Pressable>
     );
@@ -175,8 +202,8 @@ export function LocationBanner({ theme }: Props) {
             </Text>
             <Text style={s.warnBody}>{state.detail}</Text>
           </View>
-          {close}
         </View>
+        {actions}
       </View>
     );
   }
@@ -203,7 +230,9 @@ export function LocationBanner({ theme }: Props) {
           <Text style={[s.inviteTitle, s.flex]} numberOfLines={1}>
             No shop recognised here
           </Text>
-          {close}
+          <View style={s.cta}>
+            <Text style={s.ctaText}>Try again</Text>
+          </View>
         </View>
       </Pressable>
     );
@@ -222,7 +251,6 @@ export function LocationBanner({ theme }: Props) {
               GPS can't tell which shop you're in here. Pick one.
             </Text>
           </View>
-          {close}
         </View>
 
         <View style={s.chips}>
@@ -254,6 +282,7 @@ export function LocationBanner({ theme }: Props) {
           </View>
         )}
 
+        {actions}
       </View>
     );
   }
@@ -271,16 +300,8 @@ export function LocationBanner({ theme }: Props) {
           <View style={s.divider} />
           {renderBest(state.place.best)}
         </View>
-        {close}
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Check again"
-        onPress={locate}
-        style={({ pressed }) => [s.again, pressed && { opacity: 0.6 }]}
-      >
-        <Text style={s.againText}>Check again</Text>
-      </Pressable>
+      {actions}
     </View>
   );
 }
@@ -317,8 +338,29 @@ const styles = (t: Theme) =>
     row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
     flex: { flex: 1 },
     pin: { marginTop: 1 },
-    close: { paddingHorizontal: 2 },
-    closeText: { fontSize: 15, color: t.inkFaint, fontWeight: '600' },
+    cta: {
+      backgroundColor: t.accent,
+      borderRadius: radius.pill,
+      paddingVertical: 7,
+      paddingHorizontal: space.md,
+    },
+    ctaText: {
+      ...type.small,
+      fontSize: 12.5,
+      fontWeight: '700',
+      color: t.accentInk,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: space.lg,
+      marginTop: space.md,
+      paddingTop: space.sm,
+      borderTopWidth: 1,
+      borderTopColor: t.ruleSoft,
+    },
+    action: { paddingVertical: 2 },
+    actionText: { ...type.small, fontSize: 13, fontWeight: '700', color: t.accent },
+    actionQuiet: { color: t.inkFaint, fontWeight: '600' },
 
     inviteTitle: { ...type.label, fontWeight: '600', color: t.ink },
     inviteBody: { ...type.small, color: t.inkSoft, marginTop: 2 },
@@ -369,6 +411,4 @@ const styles = (t: Theme) =>
       marginBottom: 6,
     },
 
-    again: { alignSelf: 'flex-start', marginTop: 11 },
-    againText: { color: t.accent, fontSize: 13, fontWeight: '600' },
   });
