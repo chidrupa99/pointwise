@@ -29,7 +29,7 @@ import {
   unlinkIssuer,
   type PlaidStatus,
 } from '../plaid';
-import { fetchCatalog, type CatalogCard } from '../wallet';
+import { fetchCatalog, formatDate, type CatalogCard } from '../wallet';
 import { MONO, UI, dark, light, radius, space, type Theme } from '../theme';
 
 interface Props {
@@ -141,7 +141,7 @@ export function ConnectIssuer({ onChanged }: Props) {
           <View style={s.block}>
             <Text style={s.blockTitle}>{link.institution_name}</Text>
             <Text style={s.blockMeta}>
-              Connected {link.linked_at.slice(0, 10)}
+              Connected {formatDate(link.linked_at.slice(0, 10))}
             </Text>
 
             {link.accounts.length === 0 && (
@@ -313,7 +313,7 @@ const styles = (t: Theme) =>
       gap: space.sm,
     },
     blockTitle: { fontFamily: UI, fontSize: 16, fontWeight: '700', color: t.ink },
-    blockMeta: { fontFamily: MONO, fontSize: 11, color: t.inkFaint },
+    blockMeta: { fontFamily: UI, fontSize: 12, color: t.inkFaint },
 
     account: { gap: space.xs, borderTopWidth: 1, borderTopColor: t.ruleSoft, paddingTop: space.sm },
     accountLabel: { fontFamily: UI, fontSize: 14, color: t.ink, fontWeight: '600' },
