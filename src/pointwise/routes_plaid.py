@@ -34,6 +34,15 @@ def plaid_status() -> dict:
     """Whether an issuer is linked, and whether one could be."""
     state = plaid_store.read()
     cache = plaid_store.read_cache()
+
+    # Per bank, not just in total. With more than one connected, a single
+    # number cannot tell the user which connection is actually delivering --
+    # a bank that has gone quiet looks identical to one that is working.
+    per_item: dict[str, int] = {}
+    for link in state.links:
+        owned = {a.account_id for a in link.accounts}
+        per_item[link.item_id] = sum(1 for r in cache if r.account_id in owned)
+
     return {
         "configured": PLAID.configured,
         "environment": PLAID.config.environment,
@@ -45,7 +54,10 @@ def plaid_status() -> dict:
         ),
         "sandbox_shortcut_available": PLAID.configured and PLAID.config.is_sandbox,
         "connected": state.connected,
-        "links": [plaid_store.redacted(li) for li in state.links],
+        "links": [
+            plaid_store.redacted(li) | {"transaction_count": per_item[li.item_id]}
+            for li in state.links
+        ],
         "transactions_cached": len(cache),
         "unmapped_accounts": sum(
             1 for li in state.links for a in li.accounts if a.card_id is None

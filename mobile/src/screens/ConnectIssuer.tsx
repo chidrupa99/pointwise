@@ -81,7 +81,11 @@ export function ConnectIssuer({ onChanged }: Props) {
     [refresh, onChanged],
   );
 
-  const link = status?.links[0] ?? null;
+  // Every bank, not the first one. A card lives at the bank that issued it,
+  // so a wallet of four cards is usually several connections -- an Amex Gold
+  // is at American Express and a Venture X at Capital One, and they can never
+  // arrive on the same login.
+  const links = status?.links ?? [];
 
   return (
     <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
@@ -106,8 +110,7 @@ export function ConnectIssuer({ onChanged }: Props) {
           </View>
         )}
 
-        {/* Step 1 — link */}
-        {status?.configured && !status.connected && (
+        {status?.configured && (
           <>
             <Pressable
               accessibilityRole="button"
@@ -126,22 +129,32 @@ export function ConnectIssuer({ onChanged }: Props) {
               ]}
             >
               <Text style={s.ctaText}>
-                {busy === 'link' ? 'Connecting…' : 'Connect your bank'}
+                {busy === 'link'
+                  ? 'Connecting…'
+                  : links.length === 0
+                    ? 'Connect your bank'
+                    : 'Connect another bank'}
               </Text>
             </Pressable>
-            <Text style={s.fine}>
-              You sign in to your bank on their own screen. Pointwise never
-              sees your banking password, and never asks for a card number.
-            </Text>
+            {links.length === 0 && (
+              <Text style={s.fine}>
+                You sign in to your bank on their own screen. Pointwise never
+                sees your banking password, and never asks for a card number.
+              </Text>
+            )}
           </>
         )}
 
-        {/* Step 2 — say which card each account is */}
-        {link && (
-          <View style={s.block}>
+        {links.map((link) => (
+          <View key={link.item_id} style={s.block}>
             <Text style={s.blockTitle}>{link.institution_name}</Text>
             <Text style={s.blockMeta}>
-              Connected {formatDate(link.linked_at.slice(0, 10))}
+              Connected {formatDate(link.linked_at.slice(0, 10))} &middot;{' '}
+              {link.transaction_count === 0
+                ? 'no transactions yet'
+                : `${link.transaction_count} transaction${
+                    link.transaction_count === 1 ? '' : 's'
+                  }`}
             </Text>
 
             {link.accounts.length === 0 && (
@@ -213,8 +226,27 @@ export function ConnectIssuer({ onChanged }: Props) {
                 </View>
               );
             })}
+
+            {/* Per bank, because that is what a Plaid connection is: one
+                bank login. There is no per-card revoke to offer -- removing a
+                single card means telling us the account is not one of yours
+                above, or dropping the card from your wallet. */}
+            <Pressable
+              accessibilityRole="button"
+              disabled={busy !== null}
+              onPress={() =>
+                run(
+                  'unlink',
+                  () => unlinkIssuer(link.item_id),
+                  `${link.institution_name} disconnected.`,
+                )
+              }
+              style={({ pressed }) => [s.danger, pressed && { opacity: 0.6 }]}
+            >
+              <Text style={s.dangerText}>Disconnect this bank</Text>
+            </Pressable>
           </View>
-        )}
+        ))}
 
         {/* Connecting already pulled the statement. What is left here is a
             retry for the case where Plaid had nothing ready yet, which is why
@@ -226,7 +258,7 @@ export function ConnectIssuer({ onChanged }: Props) {
                 <Text style={s.stat}>
                   {status.transactions_cached === 0
                     ? 'No transactions yet'
-                    : `${status.transactions_cached} transactions`}
+                    : `${status.transactions_cached} in total`}
                 </Text>
                 <Pressable
                   accessibilityRole="button"
@@ -247,17 +279,6 @@ export function ConnectIssuer({ onChanged }: Props) {
                 </Text>
               )}
             </View>
-
-            <Pressable
-              accessibilityRole="button"
-              disabled={busy !== null}
-              onPress={() =>
-                run('unlink', () => unlinkIssuer(link!.item_id), 'Issuer forgotten.')
-              }
-              style={({ pressed }) => [s.danger, pressed && { opacity: 0.6 }]}
-            >
-              <Text style={s.dangerText}>Disconnect this bank</Text>
-            </Pressable>
           </>
         )}
 

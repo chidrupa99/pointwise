@@ -16,6 +16,9 @@ export interface PlaidLinkRow {
   has_cursor: boolean;
   access_token_length: number;
   accounts: PlaidAccountRow[];
+  /** Rows cached for this bank alone, so each connection can account for
+   *  itself rather than hiding inside a single total. */
+  transaction_count: number;
 }
 
 export interface PlaidStatus {
