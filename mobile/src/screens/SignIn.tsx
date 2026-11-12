@@ -156,7 +156,9 @@ export function SignIn({ onSignedIn }: Props) {
                 pressed && { opacity: 0.8 },
               ]}
             >
-              <Text style={s.goText}>Continue</Text>
+              <Text style={[s.goText, !name.trim() && s.goTextOff]}>
+                Continue
+              </Text>
             </Pressable>
             <Text style={s.honest}>
               This is a name, not an account. Nothing is verified and nothing is
@@ -235,13 +237,17 @@ const styles = (t: Theme) =>
       paddingVertical: space.lg,
       alignItems: 'center',
     },
-    goOff: { opacity: 0.4 },
+    // A disabled button is a different thing, not a faded version of an
+    // enabled one: orange at 40% on ink comes out muddy brown, which
+    // reads as a badly coloured button rather than an inactive one.
+    goOff: { backgroundColor: t.surfaceLift },
     goText: {
       fontFamily: UI,
       color: t.accentInk,
       fontSize: 16,
       fontWeight: '600',
     },
+    goTextOff: { color: t.inkFaint },
     honest: { ...type.small, lineHeight: 17, color: t.inkFaint },
 
     alt: { alignItems: 'center', paddingVertical: space.md },

@@ -215,11 +215,18 @@ export function Chat() {
             disabled={busy || !draft.trim()}
             style={({ pressed }) => [
               s.send,
-              (busy || !draft.trim()) && { opacity: 0.35 },
+              (busy || !draft.trim()) && s.sendOff,
               pressed && { opacity: 0.6 },
             ]}
           >
-            <Text style={s.sendText}>Ask</Text>
+            <Text
+              style={[
+                s.sendText,
+                (busy || !draft.trim()) && s.sendTextOff,
+              ]}
+            >
+              Ask
+            </Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -369,5 +376,9 @@ const styles = (t: Theme) =>
       height: 40,
       justifyContent: 'center',
     },
+    // Neutral when inactive rather than a faded accent, which on ink
+    // reads as a muddy button instead of a disabled one.
+    sendOff: { backgroundColor: t.surfaceLift },
     sendText: { color: t.accentInk, fontFamily: UI, fontSize: 14.5, fontWeight: '700' },
+    sendTextOff: { color: t.inkFaint },
   });

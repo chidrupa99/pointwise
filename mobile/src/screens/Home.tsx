@@ -8,7 +8,6 @@
  * the cards and for the two verdicts; the chrome around them is ink and bone.
  */
 
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -23,8 +22,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ActivityRow } from '../components/ActivityRow';
-import { Brand } from '../components/Brand';
 import { CardTile, TILE_HEIGHT, TILE_WIDTH } from '../components/CardTile';
+import { BAND_INK_FAINT, HeroBand, RAIL_LIFT } from '../components/HeroBand';
 import { EmptyWallet } from '../components/EmptyWallet';
 import { LocationBanner } from '../components/LocationBanner';
 import {
@@ -55,27 +54,6 @@ import {
 /** Rows shown before the feed is collapsed. */
 const PREVIEW_ROWS = 6;
 
-/**
- * The band is burnt orange, dark at the bottom where the page meets it.
- * Type on it is always a warm off-white -- the headline figure included,
- * which has to invert here or it vanishes into its own background.
- */
-/**
- * The band's own ink, fixed in both themes. Built from theme tokens it
- * came out the same colour as the page in dark mode and the header simply
- * vanished; against warm paper in light mode it has to stay dark anyway.
- */
-const BAND_TOP = '#C2561E';
-const BAND_MID = '#8A3A14';
-const BAND_BOTTOM = '#3A1709';
-
-const BAND_INK = '#FDF6EE';
-const BAND_INK_SOFT = 'rgba(253,246,238,0.78)';
-const BAND_INK_FAINT = 'rgba(253,246,238,0.62)';
-const BAND_RULE = 'rgba(253,246,238,0.34)';
-
-/** How far the card rail lifts into the band. */
-const RAIL_LIFT = 56;
 
 interface Props {
   onOpenChat: () => void;
@@ -155,77 +133,13 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
             />
           }
         >
-          {/* The band. Everything the screen is about -- who you are, what it
-              cost you -- sits on ink, and the cards lift off its bottom edge
-              into the page. The old version put all of this on the same flat
-              paper as the feed, so nothing led. */}
-          <LinearGradient
-            colors={[BAND_TOP, BAND_MID, BAND_BOTTOM] as const}
-            start={{ x: 0.1, y: 0 }}
-            end={{ x: 0.9, y: 1 }}
-            style={s.band}
-          >
-            <SafeAreaView edges={['top']}>
-              <View style={s.nav}>
-                <View style={s.brand}>
-                  <Brand
-                    size={30}
-                    theme={theme}
-                    plateColor={BAND_BOTTOM}
-                    markColor={BAND_INK}
-                  />
-                  <Text style={s.brandName}>Pointwise</Text>
-                </View>
-                <View style={s.navActions}>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Ask Pointwise"
-                    onPress={onOpenChat}
-                    style={({ pressed }) => [s.askBtn, pressed && { opacity: 0.6 }]}
-                  >
-                    <Text style={s.askText}>Ask</Text>
-                  </Pressable>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Account and settings"
-                    onPress={onOpenAccount}
-                    style={({ pressed }) => [s.iconBtn, pressed && { opacity: 0.6 }]}
-                  >
-                    <View style={s.bar} />
-                    <View style={s.bar} />
-                    <View style={[s.bar, { width: 9 }]} />
-                  </Pressable>
-                </View>
-              </View>
-
-              {wallet && !empty && (
-                <View style={s.hero}>
-                  {/* "Earned on your cards", not "earned with Pointwise".
-                      These rewards were earned whether or not this app
-                      existed -- it reads the statement, it does not cause the
-                      spending. Claiming the credit would be the easiest lie
-                      on the screen and the first one a reader would catch. */}
-                  {/* "Rewards", not "points": the total includes cash back
-                      from two Citi cards, which earn no points at all. */}
-                  <Text style={s.heroLabel}>Total rewards</Text>
-                  <Text style={s.heroValue}>
-                    {money(wallet.totals.value_earned_dollars)}
-                  </Text>
-                  {/* The app's own finding, in the colour that means money
-                      left. A total of points was here and has gone: it added
-                      Amex points to Capital One miles, two currencies at two
-                      valuations, and counted the cash-back cards as zero. */}
-                  <Text style={s.heroSub}>
-                    You could have had{' '}
-                    <Text style={s.heroSubStrong}>
-                      {money(wallet.totals.missed_dollars)}
-                    </Text>{' '}
-                    more
-                  </Text>
-                </View>
-              )}
-            </SafeAreaView>
-          </LinearGradient>
+          <HeroBand
+            theme={theme}
+            earned={wallet && !empty ? wallet.totals.value_earned_dollars : null}
+            missed={wallet && !empty ? wallet.totals.missed_dollars : null}
+            onOpenChat={onOpenChat}
+            onOpenAccount={onOpenAccount}
+          />
 
           <View style={s.page}>
           {error && (
@@ -404,66 +318,10 @@ const styles = (t: Theme) =>
     safe: { flex: 1 },
     scroll: { paddingBottom: space.xxxl },
 
-    band: {
-      paddingHorizontal: space.lg,
-      paddingBottom: RAIL_LIFT + space.lg,
-      borderBottomLeftRadius: radius.xl,
-      borderBottomRightRadius: radius.xl,
-    },
     // Everything below the band sits on paper and is lifted up over its edge.
     page: { marginTop: -RAIL_LIFT, paddingHorizontal: space.lg },
 
-    nav: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingTop: space.sm,
-    },
-    brand: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-    brandName: {
-      fontFamily: UI_BOLD,
-      fontSize: 19,
-      color: BAND_INK,
-      letterSpacing: -0.3,
-    },
-    navActions: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-    askBtn: {
-      paddingHorizontal: space.lg,
-      height: 36,
-      borderRadius: radius.pill,
-      borderWidth: 1,
-      borderColor: BAND_RULE,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    askText: { fontFamily: UI_SEMI, fontSize: 14, color: BAND_INK },
-    iconBtn: {
-      width: 36,
-      height: 36,
-      borderRadius: radius.pill,
-      borderWidth: 1,
-      borderColor: BAND_RULE,
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 3.5,
-    },
-    bar: { width: 14, height: 1.5, borderRadius: 1, backgroundColor: BAND_INK },
 
-    hero: { paddingTop: space.xxl, paddingBottom: space.sm },
-    heroLabel: { ...SECTION_CAPS, color: BAND_INK_FAINT },
-    heroValue: {
-      ...type.hero,
-      color: BAND_INK,
-      marginTop: space.sm,
-      letterSpacing: -2,
-    },
-    heroSub: {
-      ...type.body,
-      color: BAND_INK_SOFT,
-      marginTop: space.sm,
-      fontVariant: ['tabular-nums'],
-    },
-    heroSubStrong: { fontFamily: UI_BOLD, color: BAND_INK },
 
     errorBox: {
       backgroundColor: t.stopSoft,
