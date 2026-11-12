@@ -131,7 +131,11 @@ export function HeroBand({
 const s = StyleSheet.create({
   band: {
     paddingHorizontal: space.lg,
-    paddingBottom: RAIL_LIFT + space.lg,
+    // RAIL_LIFT is how far the page below is pulled up over this edge, so
+    // what is left as orange under the first element is whatever exceeds it.
+    // At space.lg that was about ten points, which reads as the banner being
+    // stuck to the bottom of the band rather than sitting inside it.
+    paddingBottom: RAIL_LIFT + space.xl,
     borderBottomLeftRadius: radius.xl,
     borderBottomRightRadius: radius.xl,
   },
