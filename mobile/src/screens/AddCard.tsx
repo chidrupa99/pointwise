@@ -132,7 +132,7 @@ export function AddCard({ onDone, onConnect }: Props) {
 
   const toggle = useCallback(
     (card: CatalogCard) => {
-      if (card.blocked_reason) return;
+      if (card.absent_from_connection && !card.held) return;
       // Only an offer needs a date, and only when adding: removing a card
       // never has a window to place.
       if (!card.held && card.signup_bonus) {
@@ -231,15 +231,20 @@ export function AddCard({ onDone, onConnect }: Props) {
 
             {bank.cards.map((card) => {
               const finish = cardFinish(card.card_id);
-              const blocked = card.blocked_reason !== null;
+              // Absence is a fact about the card; blocking is what we do
+              // about it, and only when adding. A held card the connection
+              // does not carry still says so -- it just stays tickable, so it
+              // can be taken out.
+              const absent = card.absent_from_connection;
+              const blocked = absent && !card.held;
               return (
                 <Pressable
                   key={card.card_id}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: card.held, disabled: blocked }}
                   accessibilityLabel={
-                    blocked
-                      ? `${card.name}. ${card.blocked_reason}.`
+                    absent
+                      ? `${card.name}, ${card.held ? 'in wallet' : 'not in wallet'}. Not on your ${card.issuer} connection.`
                       : `${card.name}, ${card.held ? 'in wallet' : 'not in wallet'}`
                   }
                   disabled={blocked || busyId !== null}
@@ -275,12 +280,14 @@ export function AddCard({ onDone, onConnect }: Props) {
                     </Text>
                     {/* The reason sits on the row it disables. A greyed row
                         with the explanation elsewhere reads as a bug. */}
-                    {blocked && (
-                      <Text style={s.rowBlocked}>{card.blocked_reason}</Text>
+                    {absent && (
+                      <Text style={s.rowBlocked}>
+                        Not on your {card.issuer} connection
+                      </Text>
                     )}
                   </View>
 
-                  {card.signup_bonus && !card.held && !blocked && (
+                  {card.signup_bonus && !card.held && !absent && (
                     <View style={s.offer}>
                       <Text style={s.offerValue}>
                         {Math.round(Number(card.signup_bonus.points) / 1000)}k

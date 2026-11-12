@@ -442,21 +442,24 @@ def _connection_facts() -> tuple[set[str], set[str], set[str]]:
     return reading, connected, spare
 
 
-def _blocked_reason(card: Card, held: bool, connected: set[str], spare: set[str]):
-    """Why this card cannot be added, or None if it can.
+def _absent_from_connection(
+    card: Card, reading: set[str], connected: set[str], spare: set[str]
+) -> bool:
+    """Whether we know this card is not on the issuer's connection.
 
-    One case only, and it is a thing we actually know rather than a guess: the
-    issuer is connected, every account on that connection is already claimed,
-    and this card is not one of them. It is not on that login. Letting someone
-    add it anyway buys them a tile that can never fill in.
+    A thing we know rather than a guess: the issuer is connected, every
+    account on that connection is already claimed by some other card, and
+    this one is not among them.
 
-    A card already held is always removable, whatever the connection says.
+    It is reported for every card, held or not, because it is true either
+    way -- a card in the wallet that the connection does not carry is exactly
+    the case where the user most needs telling. What changes with holding it
+    is only whether the row can still be ticked off, which is the caller's
+    business, not this function's.
     """
-    if held:
-        return None
-    if card.issuer in connected and card.issuer not in spare:
-        return f"Not on your {card.issuer} connection"
-    return None
+    if card.id in reading:
+        return False
+    return card.issuer in connected and card.issuer not in spare
 
 
 @router.get("/api/catalog")
@@ -477,9 +480,10 @@ def get_catalog() -> dict:
                 "issuer": c.issuer,
                 #: Whether a connection is reading this card's statement.
                 "statement_linked": c.id in reading,
-                #: Why it cannot be added, when it cannot. None means it can.
-                "blocked_reason": _blocked_reason(
-                    c, held.holds(c.id), connected, spare
+                #: Known to be missing from the issuer's connection. Shown
+                #: whether or not the card is held; it only blocks adding.
+                "absent_from_connection": _absent_from_connection(
+                    c, reading, connected, spare
                 ),
                 "network": c.network,
                 "annual_fee": str(c.annual_fee),

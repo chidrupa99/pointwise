@@ -73,13 +73,16 @@ export interface CatalogCard {
   /** Whether a connection is reading this card's statement. */
   statement_linked: boolean;
   /**
-   * Why this card cannot be added, or null if it can. Set when the issuer is
-   * connected and every account on that connection is already claimed: the
-   * card is not on that login, so holding it would buy a tile that can never
-   * fill in. A card already held is never blocked -- the checkbox that added
-   * it has to be able to take it away.
+   * Known to be missing from the issuer's connection: the bank is connected,
+   * every account on it is claimed by another card, and this is not one of
+   * them.
+   *
+   * True for held cards too, because it is true of them too -- a card in the
+   * wallet the connection does not carry is exactly the case worth saying out
+   * loud. It only blocks *adding*; a held card stays tickable so it can be
+   * taken out.
    */
-  blocked_reason: string | null;
+  absent_from_connection: boolean;
   network: string | null;
   annual_fee: string;
   point_value_cents: string;
