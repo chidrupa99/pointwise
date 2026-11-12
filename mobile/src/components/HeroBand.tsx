@@ -36,8 +36,19 @@ const BAND_INK_SOFT = 'rgba(253,246,238,0.78)';
 export const BAND_INK_FAINT = 'rgba(253,246,238,0.62)';
 const BAND_RULE = 'rgba(253,246,238,0.34)';
 
-/** How far the card rail lifts into the band. */
-export const RAIL_LIFT = 56;
+/**
+ * How far the page below is pulled up over the band's bottom edge.
+ *
+ * This, not the band's padding, is what decides how much orange is left
+ * under the first thing on the page: the page's top sits RAIL_LIFT above the
+ * band's bottom, so the gap underneath is RAIL_LIFT minus that element's
+ * height. Growing the band's bottom padding moves the edge and the element
+ * down together and changes nothing.
+ *
+ * The location banner is about 53 tall, so this leaves roughly 24 beneath
+ * it -- the same gap it has at its sides, and the same it has above.
+ */
+export const RAIL_LIFT = 78;
 
 export function HeroBand({
   theme,
@@ -131,11 +142,7 @@ export function HeroBand({
 const s = StyleSheet.create({
   band: {
     paddingHorizontal: space.lg,
-    // RAIL_LIFT is how far the page below is pulled up over this edge, so
-    // what is left as orange under the first element is whatever exceeds it.
-    // At space.lg that was about ten points, which reads as the banner being
-    // stuck to the bottom of the band rather than sitting inside it.
-    paddingBottom: RAIL_LIFT + space.xl,
+    paddingBottom: RAIL_LIFT + space.lg,
     borderBottomLeftRadius: radius.xl,
     borderBottomRightRadius: radius.xl,
   },

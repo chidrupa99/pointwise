@@ -312,8 +312,11 @@ const styles = (t: Theme) =>
       borderRadius: radius.lg,
       paddingVertical: space.md,
       paddingHorizontal: space.lg,
-      // No bottom margin: whatever follows brings its own top spacing, and
-      // the two stacked to 36 where every other section break is 24.
+      // The banner sits inset into the band, so roughly this much of it is
+      // over orange. Reserving the same below keeps whatever follows clear
+      // of the band's edge instead of butting against it; that element's own
+      // top margin then provides the gap under the edge.
+      marginBottom: space.xl,
     },
     inviteBanner: {
       backgroundColor: t.surface,
