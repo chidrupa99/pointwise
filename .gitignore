@@ -17,3 +17,6 @@ data/wallet.json
 data/profile.json
 data/plaid.json
 data/plaid_transactions.json
+
+# Recorded demo footage: large, and the submission links YouTube instead.
+docs/demo/

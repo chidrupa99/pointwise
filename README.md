@@ -5,6 +5,101 @@ LLM extraction pipeline in front of it.
 
 Built for the PayPal AI Hackathon (submissions close 12 Nov 2026).
 
+Submission write-up: [docs/SUBMISSION.md](docs/SUBMISSION.md). Licensed MIT.
+
+---
+
+## Quickstart
+
+**Everything below runs with no credentials at all.** The rules engine, the
+mobile app, the ranking, the activity feed and the location suggestions all
+work from bundled demo data. API keys unlock the live PayPal, Plaid and
+advisor paths — see [PayPal](#paypal) further down — but nothing is required
+to see the project work.
+
+**You need:** Python 3.11+, [uv](https://docs.astral.sh/uv/), and — for the
+phone client — Node 22.13+ and either Xcode's iOS Simulator, an Android
+emulator, or Expo Go on a physical phone.
+
+### 1. The engine, in one minute
+
+```bash
+git clone https://github.com/chidrupa99/pointwise.git
+cd pointwise
+uv venv && uv pip install -e ".[dev]"
+
+PYTHONPATH=src .venv/bin/python scripts/which_card.py "Trader Joe's" 120
+PYTHONPATH=src .venv/bin/python scripts/which_card.py Walmart 120
+
+.venv/bin/python -m pytest -q      # 333 tests, no network needed
+```
+
+Run those two `which_card.py` lines back to back and you have the whole
+argument for the project: same $120, different merchant, different winning
+card — because Walmart's merchant category code is *discount store*, not
+grocery, so the grocery card quietly loses.
+
+### 2. The API and the web console
+
+```bash
+PYTHONPATH=src .venv/bin/uvicorn pointwise.api:app --reload --port 8077
+```
+
+- Web console: <http://localhost:8077>
+- Interactive API docs: <http://localhost:8077/docs>
+
+```bash
+curl -s localhost:8077/api/recommend -H 'content-type: application/json' \
+  -d '{"merchant":"Trader Joe'"'"'s","amount":"120.00"}'
+```
+
+### 3. The mobile app
+
+Leave the API running, then in a second terminal:
+
+```bash
+cd mobile
+nvm use                 # reads .nvmrc -- Node 22; Expo SDK 58 fails on Node 20
+npm install
+npx expo start --ios    # or --android, or scan the QR with Expo Go
+```
+
+The app finds the API at `localhost:8077` on the iOS Simulator and
+`10.0.2.2:8077` on the Android emulator. For a physical phone, set
+`EXPO_PUBLIC_API_BASE` to your machine's LAN address.
+
+### 4. The in-person suggestion
+
+The location banner on Home reads the device's position. The simulator can be
+told where it is, which exercises the geofencing without walking anywhere:
+
+```bash
+xcrun simctl location booted set 37.3270,-121.9490   # outside a supermarket
+xcrun simctl location booted set 37.3258,-121.9460   # inside a mall
+```
+
+### 5. Resetting the demo, and the bank connection
+
+`scripts/demo_reset.sh` restores `data/` to a recorded state — four cards,
+$234.21 earned, $65.64 missed — and verifies the checksums. Close the app
+first; the running client writes to those files.
+
+The committed snapshot ships with **no bank connection**, because a Plaid
+access token is a credential and does not belong in a public repository. To
+create one, put a free sandbox key pair from dashboard.plaid.com in `.env` and
+run:
+
+```bash
+PYTHONPATH=src .venv/bin/python scripts/seed_plaid_demo.py
+```
+
+That mints connected sandbox items against real institutions (American
+Express, Capital One) with a month of transactions, no Link UI needed. The app
+works without it — the wallet and activity feed fall back to bundled data and
+report `is_demo_data`.
+
+---
+
 ## What it can and cannot see
 
 Pointwise ranks your cards for **any** purchase — that needs nothing but the
@@ -87,7 +182,7 @@ more credibility than no figure at all.
 | `web/` | Browser console |
 | `mobile/` | Expo app for iOS and Android |
 
-157 tests passing.
+333 tests passing.
 
 ## Try it
 
