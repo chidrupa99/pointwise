@@ -53,10 +53,11 @@ advisor that can rank a purchase, read your wallet, describe a card, audit
 recent spending, and look up what is nearby — and every answer carries a trace
 of exactly which of those it consulted.
 
-**Manages the wallet.** Sign in with PayPal, add cards from a catalogue grouped
-by issuer, see at a glance which cards your bank connection can actually read,
-connect additional banks, and disconnect any of them — which revokes the token
-at Plaid, not just locally.
+**Manages the wallet.** Add cards from a catalogue grouped by issuer, see at a
+glance which cards your bank connection can actually read — a card your bank
+does not carry is disabled in the picker rather than failing later — connect
+additional banks, and disconnect any of them, which revokes the token at
+Plaid rather than only forgetting it locally.
 
 ---
 
@@ -100,8 +101,8 @@ Two things this gets right that a lookup table does not:
 Expo / React Native app  ──►  FastAPI  ──►  deterministic rules engine
    (iOS + Android)                │              (engine.py, recommend.py)
                                   │
-                                  ├─►  PayPal   — Log in with PayPal (OAuth identity),
-                                  │              Orders v2 + Vault, Transaction Search
+                                  ├─►  PayPal   — OAuth2, Vault v3/v1, Orders v2,
+                                  │              Transaction Search
                                   ├─►  Plaid    — Link, /transactions/sync
                                   └─►  Claude   — the advisor's tool loop
 ```
@@ -138,17 +139,39 @@ failure mode this architecture exists to prevent.
 
 ### PayPal
 
-- **Log in with PayPal** — OAuth identity. The signed-in name and verified
-  email come back from PayPal and the app shows whether the identity was
-  verified or is name-only.
-- **Orders v2 + Vault (v3 with a v1 fallback)** — `funding.py` turns the
-  engine's chosen `card_id` into a funding instrument PayPal will accept, and
-  `/api/checkout` creates and captures a real sandbox order on it. This proves
-  a recommendation can become a funded payment. It is driven from a terminal,
-  not from the app.
+- **OAuth2 client credentials** — `paypal.py` authenticates against the
+  sandbox REST API and reads the **granted scopes back out of the token
+  response**, so the app knows what it is allowed to do before it tries. That
+  is what `/api/paypal/status` reports.
+- **Vault (v3 with a v1 fallback)** — `funding.py` turns the engine's chosen
+  `card_id` into a funding instrument, storing a per-card record keyed by
+  `external_card_id`. Vault **v3** mints a token that drops straight into
+  `payment_source.card.vault_id`; it requires *Save payment methods* on the
+  REST app and returns `NOT_AUTHORIZED` without it. Vault **v1** is authorized
+  where v3 is not and still stores a real per-card record, but Orders v2
+  rejects its id — so it gives identity without execution. Every purchase
+  records which tier actually paid, and `funded_from_vault` is false for
+  anything but v3.
+- **Orders v2** — `/api/checkout` creates and captures a real sandbox order on
+  the funding source the engine chose, which proves a recommendation can
+  become a funded payment. `PayPal-Request-Id` is sent on every order carrying
+  a `payment_source`; it is PayPal's idempotency key, and without it a retried
+  order can charge twice. This endpoint is a harness driven from a terminal —
+  **there is no purchase flow in the app.**
 - **Transaction Search** — backfills the activity feed. It lags about three
   hours, so `ledger.py` records our own captures at capture time and the feed
-  merges the two with the ledger winning on conflicts.
+  merges the two with the ledger winning on conflicts. Worth knowing before
+  you build on it: Transaction Search is **merchant-scoped** — it returns the
+  transactions of the business account the REST app belongs to, not a
+  consumer's personal spending history.
+- **Log in with PayPal** is implemented in `auth.py` and `routes_auth.py`
+  (authorization URL, code exchange, identity fetch, verified-email handling)
+  but is **not active in the recorded demo**: PayPal rejects an `http://`
+  return URL, and Expo Go has no HTTPS callback to register. `/api/auth/status`
+  reports `paypal_login_available: false` with the reason in prose, and the
+  app falls back to a name-only local profile that is explicitly labelled
+  "not verified by PayPal". Setting `PAYPAL_LOGIN_REDIRECT_URI` to a
+  registered HTTPS return URL turns it on.
 
 ### Plaid
 
