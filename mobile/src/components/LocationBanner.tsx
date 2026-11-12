@@ -10,7 +10,7 @@
  * denied permanently.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -21,6 +21,9 @@ import {
   type NearbyPlace,
 } from '../nearby';
 import { MONO, radius, space, type, money, type Theme } from '../theme';
+
+/** How long a "nothing here" result stays before the banner resets. */
+const EMPTY_LINGER_MS = 6000;
 
 type State =
   | { kind: 'idle' }
@@ -42,6 +45,15 @@ export function LocationBanner({ theme }: Props) {
   const [state, setState] = useState<State>({ kind: 'idle' });
   const [dismissed, setDismissed] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
+
+  // Nothing found is not worth holding the top of the screen. Step back to
+  // the invitation so the slot is useful again, and so a later tap can try
+  // from a new position rather than re-reading the same dead end.
+  useEffect(() => {
+    if (state.kind !== 'empty') return;
+    const t = setTimeout(() => setState({ kind: 'idle' }), EMPTY_LINGER_MS);
+    return () => clearTimeout(t);
+  }, [state.kind]);
 
   const locate = useCallback(async () => {
     setState({ kind: 'loading' });
@@ -167,16 +179,28 @@ export function LocationBanner({ theme }: Props) {
   }
 
   if (state.kind === 'empty') {
+    // A null result is the one state with nothing to act on, so it gets the
+    // least room: one line, and it steps back to the invitation on its own
+    // rather than sitting at a dead end taking up the top of the screen.
     return (
-      <View style={[s.banner, s.inviteBanner]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Look again"
+        onPress={locate}
+        style={({ pressed }) => [
+          s.banner,
+          s.inviteBanner,
+          pressed && { opacity: 0.8 },
+        ]}
+      >
         <View style={s.row}>
-          <View style={s.flex}>
-            <Text style={s.inviteTitle}>Nothing recognised nearby</Text>
-            <Text style={s.inviteBody}>Ask Pointwise by name instead.</Text>
-          </View>
+          <Text style={s.pin}>◎</Text>
+          <Text style={[s.inviteTitle, s.flex]} numberOfLines={1}>
+            No shop recognised here
+          </Text>
           {close}
         </View>
-      </View>
+      </Pressable>
     );
   }
 
