@@ -201,8 +201,10 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
                       existed -- it reads the statement, it does not cause the
                       spending. Claiming the credit would be the easiest lie
                       on the screen and the first one a reader would catch. */}
+                  {/* "Rewards", not "points": the total includes cash back
+                      from two Citi cards, which earn no points at all. */}
                   <Text style={s.heroLabel}>
-                    Earned on your cards{period ? ` · ${period}` : ''}
+                    Total rewards{period ? ` · ${period}` : ''}
                   </Text>
                   <Text style={s.heroValue}>
                     {money(wallet.totals.value_earned_dollars)}
