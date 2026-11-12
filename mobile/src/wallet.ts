@@ -70,6 +70,16 @@ export interface CatalogCard {
   card_id: string;
   name: string;
   issuer: string;
+  /** Whether a connection is reading this card's statement. */
+  statement_linked: boolean;
+  /**
+   * Why this card cannot be added, or null if it can. Set when the issuer is
+   * connected and every account on that connection is already claimed: the
+   * card is not on that login, so holding it would buy a tile that can never
+   * fill in. A card already held is never blocked -- the checkbox that added
+   * it has to be able to take it away.
+   */
+  blocked_reason: string | null;
   network: string | null;
   annual_fee: string;
   point_value_cents: string;

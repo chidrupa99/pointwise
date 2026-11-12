@@ -146,42 +146,7 @@ def get_wallet() -> dict:
     # give us their spending on it, and a tile that shows zero without saying
     # why reads as "this card earned you nothing" rather than "we cannot see
     # this card".
-    links = plaid_store.read().links
-    reading = {a.card_id for li in links for a in li.accounts if a.card_id}
-
-    # Which issuers already have a connection. Derived from the cards mapped
-    # on those connections rather than by matching the institution's name,
-    # because the two are not the same string -- Plaid says "Citibank Online"
-    # where the corpus says "Citi", and a card would silently look
-    # unconnected.
-    #
-    # It matters because "Connect" is the wrong word for a card whose bank is
-    # already connected: the connection exists and simply did not return this
-    # account.
-    connected_issuers = {BY_ID[c].issuer for c in reading if c in BY_ID}
-
-    # And whether anything is left to match it to. A connection whose accounts
-    # are all claimed has nothing to offer a further card at that issuer --
-    # the card is simply not on that login. An action there would walk the
-    # user to a screen whose only honest answer is "nothing here", so the tile
-    # offers none.
-    #
-    # A link's issuer comes from a card already mapped on it. One with no
-    # mappings yet has no known issuer and contributes to nobody; a card at
-    # that issuer still reads "not connected", where Connect is the right
-    # word anyway.
-    spare: set[str] = set()
-    for li in links:
-        issuer = next(
-            (
-                BY_ID[a.card_id].issuer
-                for a in li.accounts
-                if a.card_id and a.card_id in BY_ID
-            ),
-            None,
-        )
-        if issuer and any(a.card_id is None for a in li.accounts):
-            spare.add(issuer)
+    reading, connected_issuers, spare = _connection_facts()
 
     return {
         "source": source,
@@ -443,6 +408,57 @@ class AddCardRequest(BaseModel):
     opened_on: date | None = None
 
 
+def _connection_facts() -> tuple[set[str], set[str], set[str]]:
+    """What the live connections say about cards and issuers.
+
+    Returns three sets: the cards whose statement is actually being read, the
+    issuers that have a connection at all, and the issuers whose connection
+    still has an account nobody has claimed.
+
+    Issuers are derived from the cards mapped on a connection rather than by
+    matching the institution's name, because the two are not the same string
+    -- Plaid says "Citibank Online" where the corpus says "Citi", and a match
+    on the name would call a connected issuer unconnected.
+    """
+    links = plaid_store.read().links
+    reading = {a.card_id for li in links for a in li.accounts if a.card_id}
+    connected: set[str] = set()
+    spare: set[str] = set()
+    for li in links:
+        issuer = next(
+            (
+                BY_ID[a.card_id].issuer
+                for a in li.accounts
+                if a.card_id and a.card_id in BY_ID
+            ),
+            None,
+        )
+        if issuer is None:
+            # Nothing mapped yet, so we cannot say whose login this is.
+            continue
+        connected.add(issuer)
+        if any(a.card_id is None for a in li.accounts):
+            spare.add(issuer)
+    return reading, connected, spare
+
+
+def _blocked_reason(card: Card, held: bool, connected: set[str], spare: set[str]):
+    """Why this card cannot be added, or None if it can.
+
+    One case only, and it is a thing we actually know rather than a guess: the
+    issuer is connected, every account on that connection is already claimed,
+    and this card is not one of them. It is not on that login. Letting someone
+    add it anyway buys them a tile that can never fill in.
+
+    A card already held is always removable, whatever the connection says.
+    """
+    if held:
+        return None
+    if card.issuer in connected and card.issuer not in spare:
+        return f"Not on your {card.issuer} connection"
+    return None
+
+
 @router.get("/api/catalog")
 def get_catalog() -> dict:
     """Every card the app can price, flagged with whether it is already held.
@@ -452,12 +468,19 @@ def get_catalog() -> dict:
     picker that makes someone type a card name correctly is a worse picker.
     """
     held = wallet.read()
+    reading, connected, spare = _connection_facts()
     return {
         "cards": [
             {
                 "card_id": c.id,
                 "name": c.name,
                 "issuer": c.issuer,
+                #: Whether a connection is reading this card's statement.
+                "statement_linked": c.id in reading,
+                #: Why it cannot be added, when it cannot. None means it can.
+                "blocked_reason": _blocked_reason(
+                    c, held.holds(c.id), connected, spare
+                ),
                 "network": c.network,
                 "annual_fee": str(c.annual_fee),
                 "point_value_cents": str(c.point_value_cents),

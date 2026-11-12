@@ -1,19 +1,20 @@
 /**
- * Picking a card to add.
+ * Your cards, grouped by the bank that issues them.
  *
- * A list, not a form. Pointwise can only price cards whose rules it holds, so
- * letting someone type a card name would mostly produce cards the engine
- * cannot score -- and a rewards app that shrugs at your card is worse than one
- * that never offered. Fourteen rows fit on a phone; a search box would be
- * ceremony.
+ * A checkbox rather than a one-way "add": the list is a statement of what you
+ * carry, and that is something you correct as well as extend. Until this
+ * screen there was no way to take a card out of the wallet at all.
  *
- * The open date is asked for second, and is skippable. It exists only to track
- * a welcome offer, and a user who does not remember should not be blocked --
- * they lose the progress bar, not the card.
+ * Grouping by issuer is what makes the disabled rows make sense. A bank sits
+ * above its cards with what we know about it -- connected or not -- so a row
+ * that cannot be ticked has its explanation directly above it instead of
+ * looking like an arbitrary refusal.
+ *
+ * A card with a welcome offer still asks when it was opened, because the
+ * window has to start somewhere. One without an offer is added on the tap.
  */
 
-import { LinearGradient } from 'expo-linear-gradient';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -28,25 +29,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   addCard,
   fetchCatalog,
-  fetchWallet,
+  removeCard,
   type CatalogCard,
 } from '../wallet';
 import {
-  MONO,
   MONO_MED,
   UI,
+  UI_BOLD,
   UI_SEMI,
   cardFinish,
   dark,
   light,
   radius,
   space,
+  type,
   type Theme,
 } from '../theme';
 
 interface Props {
-  onDone: (added: boolean) => void;
-  /** Hand off to the bank connection, carrying the add that just happened. */
+  onDone: (changed: boolean) => void;
   onConnect: () => void;
 }
 
@@ -58,9 +59,6 @@ function recentMonths(count: number): { label: string; iso: string }[] {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     out.push({
       label: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
-      // The 1st of the month. A welcome window is counted in months, so the
-      // day barely moves the deadline, and asking for it would be a date
-      // picker nobody wants to operate at a kitchen table.
       iso: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`,
     });
   }
@@ -72,239 +70,241 @@ export function AddCard({ onDone, onConnect }: Props) {
   const s = styles(theme);
 
   const [catalog, setCatalog] = useState<CatalogCard[] | null>(null);
-  const [chosen, setChosen] = useState<CatalogCard | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [dating, setDating] = useState<CatalogCard | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  /** Set once a card is added that no connected bank covers. */
-  const [orphan, setOrphan] = useState<CatalogCard | null>(null);
+  const [changed, setChanged] = useState(false);
 
-  useEffect(() => {
-    fetchCatalog()
-      .then((r) => setCatalog(r.cards))
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+  const load = useCallback(async () => {
+    try {
+      setCatalog((await fetchCatalog()).cards);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
   }, []);
 
-  const finish = useCallback(
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  /** Issuers in catalogue order, each with its own cards. */
+  const banks = useMemo(() => {
+    const order: string[] = [];
+    const by: Record<string, CatalogCard[]> = {};
+    for (const c of catalog ?? []) {
+      if (!by[c.issuer]) {
+        by[c.issuer] = [];
+        order.push(c.issuer);
+      }
+      by[c.issuer].push(c);
+    }
+    return order.map((issuer) => ({
+      issuer,
+      cards: by[issuer],
+      // A bank counts as connected when any of its cards has a statement
+      // behind it. That is the same fact the blocked rows are derived from,
+      // so the heading and the rows can never disagree.
+      connected: by[issuer].some((c) => c.statement_linked),
+    }));
+  }, [catalog]);
+
+  const apply = useCallback(
     async (card: CatalogCard, openedOn: string | null) => {
-      setBusy(true);
+      setBusyId(card.card_id);
       setError(null);
       try {
-        await addCard(card.card_id, openedOn);
-        // Naming a card tells us what the user carries. It does not give us
-        // their spending on it, and the tile that follows would otherwise sit
-        // at zero with no account of itself. If a connected bank already
-        // covers the card there is nothing to ask for, so this only appears
-        // when it genuinely needs connecting.
-        let covered = false;
-        try {
-          const w = await fetchWallet();
-          covered =
-            w.cards.find((c) => c.card_id === card.card_id)?.statement_linked ??
-            false;
-        } catch {
-          // A failed check is not a reason to block the add. Offering the
-          // connection costs the user one tap to decline.
-        }
-        if (covered) {
-          onDone(true);
+        if (card.held) {
+          await removeCard(card.card_id);
         } else {
-          setOrphan(card);
-          setBusy(false);
+          await addCard(card.card_id, openedOn);
         }
+        setChanged(true);
+        await load();
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
-        setBusy(false);
+      } finally {
+        setBusyId(null);
+        setDating(null);
       }
     },
-    [onDone],
+    [load],
   );
 
-  /** From the list, for a card with no offer: no date to ask about. */
-  const saveDirect = useCallback(
-    (card: CatalogCard) => finish(card, null),
-    [finish],
-  );
-
-  /** From the date step, for a card that has an offer. */
-  const save = useCallback(
-    (openedOn: string | null) => {
-      if (!chosen) return;
-      return finish(chosen, openedOn);
+  const toggle = useCallback(
+    (card: CatalogCard) => {
+      if (card.blocked_reason) return;
+      // Only an offer needs a date, and only when adding: removing a card
+      // never has a window to place.
+      if (!card.held && card.signup_bonus) {
+        setDating(card);
+        return;
+      }
+      void apply(card, null);
     },
-    [chosen, finish],
+    [apply],
   );
 
-  // Added, but nothing is reading its statement.
-  if (orphan) {
+  // When did you open it? Asked only for a card that carries an offer.
+  if (dating) {
+    const finish = cardFinish(dating.card_id);
     return (
       <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-        <View style={s.done}>
-          <Text style={s.title}>{orphan.name} added</Text>
-          <Text style={s.doneBody}>
-            Pointwise cannot see what you spend on it yet. Connect the bank
-            that issues it and the card&rsquo;s own statement fills in on its
-            own &mdash; past purchases included.
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={onConnect}
-            style={({ pressed }) => [s.cta, pressed && { opacity: 0.85 }]}
-          >
-            <Text style={s.ctaText}>Connect your bank</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => onDone(true)}
-            style={({ pressed }) => [s.later, pressed && { opacity: 0.6 }]}
-          >
-            <Text style={s.laterText}>Not now</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Step two: when did you open it?
-  if (chosen) {
-    return (
-      <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-        <View style={s.head}>
-          <Pressable accessibilityRole="button" onPress={() => setChosen(null)}>
+        <View style={s.bar}>
+          <Pressable accessibilityRole="button" onPress={() => setDating(null)}>
             <Text style={s.back}>Back</Text>
           </Pressable>
           <Text style={s.title}>When did you open it?</Text>
-          <View style={s.headSpacer} />
+          <View style={s.barSpacer} />
         </View>
-
         <ScrollView contentContainerStyle={s.scroll}>
-          <View
-            style={[
-              s.chosen,
-              { backgroundColor: cardFinish(chosen.card_id).gradient[1] },
-            ]}
-          >
-            <Text style={s.chosenName}>{chosen.name}</Text>
-            <Text style={s.chosenIssuer}>{chosen.issuer}</Text>
-          </View>
-
-          {chosen.signup_bonus && (
-            <Text style={s.why}>
-              {chosen.name} has a welcome offer worth about{' '}
-              {`$${Math.round(Number(chosen.signup_bonus.worth_dollars))}`} —
-              spend ${Number(chosen.signup_bonus.spend_required).toLocaleString(
-                'en-US',
-              )}{' '}
-              within {chosen.signup_bonus.within_months} months. Tell Pointwise
-              when you opened the account and it will track how far along you
-              are.
+          <View style={[s.chosen, { backgroundColor: finish.gradient[0] }]}>
+            <Text style={[s.chosenName, { color: finish.on }]}>{dating.name}</Text>
+            <Text style={[s.chosenIssuer, { color: finish.onSoft }]}>
+              {dating.issuer}
             </Text>
-          )}
-
+          </View>
+          <Text style={s.why}>
+            {dating.name} has a welcome offer worth about $
+            {Math.round(Number(dating.signup_bonus!.worth_dollars))} — spend $
+            {Number(dating.signup_bonus!.spend_required).toLocaleString('en-US')}{' '}
+            within {dating.signup_bonus!.within_months} months. Tell Pointwise
+            when you opened the account and it will track how far along you are.
+          </Text>
           <View style={s.months}>
             {recentMonths(18).map((m) => (
               <Pressable
                 key={m.iso}
                 accessibilityRole="button"
-                disabled={busy}
-                onPress={() => void save(m.iso)}
-                style={({ pressed }) => [s.month, pressed && s.monthOn]}
+                disabled={busyId !== null}
+                onPress={() => void apply(dating, m.iso)}
+                style={({ pressed }) => [s.month, pressed && { opacity: 0.6 }]}
               >
                 <Text style={s.monthText}>{m.label}</Text>
               </Pressable>
             ))}
           </View>
-
           <Pressable
             accessibilityRole="button"
-            disabled={busy}
-            onPress={() => void save(null)}
-            style={({ pressed }) => [s.skip, pressed && { opacity: 0.6 }]}
+            disabled={busyId !== null}
+            onPress={() => void apply(dating, null)}
+            style={({ pressed }) => [s.noDate, pressed && { opacity: 0.6 }]}
           >
-            <Text style={s.skipText}>
+            <Text style={s.noDateText}>
               I do not remember — add it without a date
             </Text>
           </Pressable>
-
-          {busy && <ActivityIndicator color={theme.inkFaint} />}
           {error && <Text style={s.error}>{error}</Text>}
         </ScrollView>
       </SafeAreaView>
     );
   }
 
-  // Step one: which card?
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <View style={s.head}>
-        <Pressable accessibilityRole="button" onPress={() => onDone(false)}>
-          <Text style={s.back}>Cancel</Text>
+      <View style={s.bar}>
+        <Pressable accessibilityRole="button" onPress={() => onDone(changed)}>
+          <Text style={s.back}>Done</Text>
         </Pressable>
-        <Text style={s.title}>Add a card</Text>
-        <View style={s.headSpacer} />
+        <Text style={s.title}>Your cards</Text>
+        <View style={s.barSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={s.scroll}>
+        <Text style={s.lead}>
+          Tick the cards you carry. Pointwise ranks every one of them on every
+          purchase, so a card you take out stops being recommended.
+        </Text>
+
         {!catalog && !error && (
           <ActivityIndicator style={s.spinner} color={theme.inkFaint} />
         )}
         {error && <Text style={s.error}>{error}</Text>}
 
-        {catalog?.map((card) => (
-          <Pressable
-            key={card.card_id}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: card.held }}
-            disabled={card.held}
-            // The open date exists to place a welcome-offer window. A card
-            // with no offer has no window, which the next screen used to
-            // admit in so many words -- a question asked and then disowned.
-            // Skip straight to saving it.
-            onPress={() =>
-              card.signup_bonus ? setChosen(card) : void saveDirect(card)
-            }
-            style={({ pressed }) => [
-              s.row,
-              card.held && s.rowHeld,
-              pressed && !card.held && { opacity: 0.7 },
-            ]}
-          >
-            <LinearGradient
-              colors={cardFinish(card.card_id).gradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={s.swatch}
-            />
-            <View style={s.rowMid}>
-              <Text style={s.rowName}>{card.name}</Text>
-              <Text style={s.rowMeta}>
-                {card.issuer}
-                {Number(card.annual_fee) > 0
-                  ? ` · $${Number(card.annual_fee).toFixed(0)}/yr`
-                  : ' · no annual fee'}
+        {banks.map((bank) => (
+          <View key={bank.issuer} style={s.bank}>
+            <View style={s.bankHead}>
+              <Text style={s.bankName}>{bank.issuer}</Text>
+              <Text style={[s.bankState, bank.connected && s.bankStateOn]}>
+                {bank.connected ? 'Connected' : 'Not connected'}
               </Text>
-              {card.headline ? (
-                <Text style={s.rowHeadline}>{card.headline}</Text>
-              ) : null}
             </View>
-            {card.held ? (
-              <Text style={s.held}>In wallet</Text>
-            ) : card.signup_bonus ? (
-              <View style={s.offerWrap}>
-                <Text style={s.offer}>
-                  {Math.round(Number(card.signup_bonus.points) / 1000)}k
-                </Text>
-                <Text style={s.offerLabel}>bonus</Text>
-              </View>
-            ) : null}
-          </Pressable>
-        ))}
 
-        <Text style={s.foot}>
-          These are the cards Pointwise can price. Every rate comes from the
-          rules corpus, and none of it has been checked by a person yet. Adding
-          a card tells Pointwise you hold it; it does not connect to the
-          issuer.
-        </Text>
+            {bank.cards.map((card) => {
+              const finish = cardFinish(card.card_id);
+              const blocked = card.blocked_reason !== null;
+              return (
+                <Pressable
+                  key={card.card_id}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: card.held, disabled: blocked }}
+                  accessibilityLabel={
+                    blocked
+                      ? `${card.name}. ${card.blocked_reason}.`
+                      : `${card.name}, ${card.held ? 'in wallet' : 'not in wallet'}`
+                  }
+                  disabled={blocked || busyId !== null}
+                  onPress={() => toggle(card)}
+                  style={({ pressed }) => [
+                    s.row,
+                    blocked && s.rowOff,
+                    pressed && !blocked && { opacity: 0.6 },
+                  ]}
+                >
+                  <View style={[s.box, card.held && s.boxOn, blocked && s.boxOff]}>
+                    {busyId === card.card_id ? (
+                      <ActivityIndicator size="small" color={theme.accentInk} />
+                    ) : card.held ? (
+                      <Text style={s.tick}>✓</Text>
+                    ) : null}
+                  </View>
+
+                  <View
+                    style={[s.chip, { backgroundColor: finish.gradient[0] }]}
+                  />
+
+                  <View style={s.flex}>
+                    <Text style={s.rowName} numberOfLines={1}>
+                      {card.name}
+                    </Text>
+                    <Text style={s.rowMeta} numberOfLines={1}>
+                      {Number(card.annual_fee) > 0
+                        ? `$${Number(card.annual_fee)}/yr`
+                        : 'no annual fee'}
+                      {' · '}
+                      {card.headline}
+                    </Text>
+                    {/* The reason sits on the row it disables. A greyed row
+                        with the explanation elsewhere reads as a bug. */}
+                    {blocked && (
+                      <Text style={s.rowBlocked}>{card.blocked_reason}</Text>
+                    )}
+                  </View>
+
+                  {card.signup_bonus && !card.held && !blocked && (
+                    <View style={s.offer}>
+                      <Text style={s.offerValue}>
+                        {Math.round(Number(card.signup_bonus.points) / 1000)}k
+                      </Text>
+                      <Text style={s.offerLabel}>bonus</Text>
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+
+            {!bank.connected && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={onConnect}
+                style={({ pressed }) => [s.connect, pressed && { opacity: 0.6 }]}
+              >
+                <Text style={s.connectText}>
+                  Connect {bank.issuer} to read these statements &rarr;
+                </Text>
+              </Pressable>
+            )}
+          </View>
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
@@ -313,79 +313,84 @@ export function AddCard({ onDone, onConnect }: Props) {
 const styles = (t: Theme) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.ground },
-    head: {
+    bar: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: space.lg,
       paddingVertical: space.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: 1,
       borderBottomColor: t.rule,
     },
-    back: { color: t.accent, fontFamily: UI, fontSize: 16, minWidth: 64 },
-    headSpacer: { minWidth: 64 },
+    back: { fontFamily: UI_SEMI, fontSize: 16, color: t.accent },
+    barSpacer: { width: 44 },
     title: { fontFamily: UI, fontSize: 17, fontWeight: '700', color: t.ink },
-    scroll: { padding: space.lg, paddingBottom: space.xxxl, gap: space.sm },
-    spinner: { marginTop: space.xxl },
+    scroll: { padding: space.lg, gap: space.lg, paddingBottom: space.xxxl },
+    lead: { ...type.small, lineHeight: 18, color: t.inkSoft },
+    spinner: { marginTop: space.xl },
+    error: { ...type.small, color: t.stop },
+    flex: { flex: 1 },
+
+    bank: { gap: space.xs },
+    bankHead: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+      marginBottom: 2,
+    },
+    bankName: { fontFamily: UI_BOLD, fontSize: 15, color: t.ink },
+    bankState: { ...type.small, fontSize: 11, color: t.inkFaint },
+    bankStateOn: { color: t.ok },
 
     row: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: space.md,
       backgroundColor: t.surface,
-      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: t.ruleSoft,
+      borderRadius: radius.md,
       padding: space.md,
     },
-    rowHeld: { opacity: 0.45 },
-    swatch: { width: 40, height: 26, borderRadius: 5 },
-    rowMid: { flex: 1, gap: 1 },
-    rowName: { fontFamily: UI, fontSize: 15, fontWeight: '600', color: t.ink },
-    rowMeta: { fontFamily: UI, fontSize: 12, color: t.inkFaint },
-    rowHeadline: { fontFamily: UI, fontSize: 12, color: t.inkSoft },
-    held: { fontFamily: UI, fontSize: 11, color: t.inkFaint, fontWeight: '600' },
-    offerWrap: { alignItems: 'flex-end' },
-    offer: { fontFamily: MONO_MED, fontSize: 14, color: t.accent },
-    offerLabel: {
-      fontFamily: UI,
-      fontSize: 10,
-      letterSpacing: 0.6,
-      textTransform: 'uppercase',
-      color: t.inkFaint,
+    rowOff: { opacity: 0.45 },
+    box: {
+      width: 22,
+      height: 22,
+      borderRadius: 6,
+      borderWidth: 1.5,
+      borderColor: t.rule,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    foot: { fontFamily: UI, fontSize: 12, lineHeight: 18, color: t.inkFaint, marginTop: space.md },
+    boxOn: { backgroundColor: t.accent, borderColor: t.accent },
+    boxOff: { borderColor: t.ruleSoft },
+    tick: { color: t.accentInk, fontSize: 14, fontWeight: '700' },
+    chip: { width: 30, height: 20, borderRadius: 4 },
+    rowName: { fontFamily: UI_SEMI, fontSize: 15, color: t.ink },
+    rowMeta: { ...type.small, fontSize: 11.5, color: t.inkFaint, marginTop: 1 },
+    rowBlocked: { ...type.small, fontSize: 11.5, color: t.warn, marginTop: 2 },
 
-    chosen: { borderRadius: radius.md, padding: space.lg, gap: space.xs },
-    chosenName: { color: '#fff', fontFamily: UI, fontSize: 19, fontWeight: '700' },
-    chosenIssuer: { color: 'rgba(255,255,255,0.8)', fontFamily: UI, fontSize: 13 },
-    why: { fontFamily: UI, fontSize: 14, lineHeight: 21, color: t.inkSoft, marginTop: space.xs },
+    offer: { alignItems: 'flex-end' },
+    offerValue: { fontFamily: MONO_MED, fontSize: 14, color: t.accent },
+    offerLabel: { ...type.small, fontSize: 9.5, color: t.inkFaint },
 
-    months: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.sm },
+    connect: { paddingVertical: space.sm, paddingHorizontal: space.xs },
+    connectText: { ...type.small, fontSize: 12, color: t.accent },
+
+    chosen: { borderRadius: radius.md, padding: space.lg },
+    chosenName: { fontFamily: UI_BOLD, fontSize: 20 },
+    chosenIssuer: { fontFamily: UI, fontSize: 13, marginTop: 2 },
+    why: { ...type.small, lineHeight: 19, color: t.inkSoft },
+    months: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
     month: {
-      paddingVertical: space.sm,
-      paddingHorizontal: space.md,
-      borderRadius: radius.xl,
       borderWidth: 1,
       borderColor: t.rule,
       backgroundColor: t.surface,
+      borderRadius: radius.pill,
+      paddingVertical: space.sm,
+      paddingHorizontal: space.md,
     },
-    monthOn: { backgroundColor: t.accentSoft, borderColor: t.accent },
-    monthText: { fontFamily: UI, fontSize: 14, color: t.ink, fontVariant: ['tabular-nums'] },
-
-    skip: { paddingVertical: space.md, alignItems: 'center' },
-    skipText: { fontFamily: UI, fontSize: 14, color: t.accent },
-    cta: {
-      backgroundColor: t.accent,
-      borderRadius: radius.md,
-      paddingVertical: space.lg,
-      alignItems: 'center',
-      marginTop: space.sm,
-    },
-    ctaText: { fontFamily: UI_SEMI, color: t.accentInk, fontSize: 16 },
-    done: { padding: space.lg, gap: space.md, paddingTop: space.xxl },
-    doneBody: { fontFamily: UI, fontSize: 14.5, lineHeight: 21, color: t.inkSoft },
-    later: { alignItems: 'center', paddingVertical: space.sm },
-    laterText: { fontFamily: UI, fontSize: 14, color: t.inkFaint },
-    error: { fontFamily: UI, fontSize: 13, color: t.stop, marginTop: space.sm },
+    monthText: { fontFamily: UI, fontSize: 14, color: t.ink },
+    noDate: { alignItems: 'center', paddingVertical: space.md },
+    noDateText: { fontFamily: UI, fontSize: 14, color: t.accent },
   });
