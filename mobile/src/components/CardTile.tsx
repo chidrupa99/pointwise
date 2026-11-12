@@ -37,11 +37,14 @@ export function CardTile({
   theme,
   active,
   onPress,
+  onConnect,
 }: {
   card: WalletCard;
   theme: Theme;
   active: boolean;
   onPress: () => void;
+  /** Open the bank connection. Only reachable on a card we cannot read. */
+  onConnect: () => void;
 }) {
   const finish = cardFinish(card.card_id);
   const s = styles(finish.on, finish.onSoft);
@@ -109,8 +112,34 @@ export function CardTile({
             three different heights, which looks like a layout fault. */}
         <View style={s.gap} />
 
-        {card.signup_bonus && (
-          <BonusBar bonus={card.signup_bonus} finish={finish} />
+        {/* The remedy sits on the card it belongs to, in the band an offer
+            would otherwise occupy. A card with no statement behind it has no
+            offer progress worth showing either -- the bar would be measuring
+            spend we cannot see -- so the two never compete for the space.
+
+            Naming the issuer is the point: "connect your bank" leaves the
+            user working out which of theirs, and the one that can close this
+            gap is the one that issued this card. */}
+        {!card.statement_linked ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Connect ${card.issuer} to read ${card.name} statements`}
+            onPress={onConnect}
+            hitSlop={6}
+            style={({ pressed }) => [
+              s.connect,
+              { borderColor: finish.onSoft },
+              pressed && { opacity: 0.6 },
+            ]}
+          >
+            <Text style={[s.connectText, { color: finish.on }]}>
+              Connect {card.issuer} &rarr;
+            </Text>
+          </Pressable>
+        ) : (
+          card.signup_bonus && (
+            <BonusBar bonus={card.signup_bonus} finish={finish} />
+          )
         )}
       </LinearGradient>
     </Pressable>
@@ -160,4 +189,12 @@ const styles = (on: string, onSoft: string) =>
     unit: { fontFamily: UI, fontSize: 12, color: onSoft },
     missed: { fontFamily: UI_SEMI, fontSize: 12, marginTop: space.sm },
     clean: { fontFamily: UI, fontSize: 12, marginTop: space.sm },
+    connect: {
+      alignSelf: 'flex-start',
+      borderWidth: 1,
+      borderRadius: radius.pill,
+      paddingVertical: 6,
+      paddingHorizontal: space.md,
+    },
+    connectText: { fontFamily: UI_SEMI, fontSize: 12.5 },
   });
