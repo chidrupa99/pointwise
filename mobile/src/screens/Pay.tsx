@@ -142,9 +142,19 @@ export function Pay({ onDone }: Props) {
   return (
     <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+        {/* The honest framing. PayPal's checkout already asks which card
+            should fund the payment, and most people take whatever is
+            default. That choice is the whole opportunity: it is the one
+            moment the card is still changeable, and nobody is doing the
+            arithmetic. Pointwise does it and funds the payment with the
+            winner. */}
         <Text style={s.lead}>
-          Pointwise ranks your cards for this purchase, then pays with the one
-          that earns most &mdash; through PayPal, on that card.
+          PayPal asks which card should fund a payment. Pointwise ranks your
+          wallet for this purchase and funds it with the one that earns most.
+        </Text>
+        <Text style={s.where}>
+          Online checkout, delivery apps, in-app purchases &mdash; wherever
+          PayPal is a payment option.
         </Text>
 
         <Text style={s.label}>Where</Text>
@@ -152,7 +162,7 @@ export function Pay({ onDone }: Props) {
           style={s.input}
           value={merchant}
           onChangeText={setMerchant}
-          placeholder="Trader Joe&rsquo;s"
+          placeholder="Walmart.com"
           placeholderTextColor={theme.inkFaint}
           autoCapitalize="words"
           accessibilityLabel="Merchant"
@@ -234,6 +244,7 @@ const styles = (t: Theme) =>
     safe: { flex: 1 },
     scroll: { padding: space.lg, gap: space.md, paddingBottom: space.xxxl },
     lead: { ...type.body, color: t.inkSoft },
+    where: { ...type.small, lineHeight: 17, color: t.inkFaint },
     label: { ...type.label, color: t.inkFaint, marginTop: space.sm },
     input: {
       backgroundColor: t.sunk,
