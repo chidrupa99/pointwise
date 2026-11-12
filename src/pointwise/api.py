@@ -25,9 +25,18 @@ from .models import Purchase
 from .places import Place, resolve_place
 from .recommend import recommend
 from .state import BY_ID, CATALOG, PLACES, build_states, my_cards
+from . import wallet
 from . import routes_auth, routes_chat, routes_money, routes_plaid
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
+
+#: wallet.json is runtime state and is not committed, so a fresh checkout or a
+#: cloud deploy starts with no cards and every recommendation comes back "no
+#: eligible card". Seed it once, from the committed example, if it is absent.
+#: Never overwrite an existing wallet -- that is the user's own.
+if not wallet.WALLET_PATH.exists() and wallet.SEED_WALLET_PATH.exists():
+    wallet.WALLET_PATH.parent.mkdir(parents=True, exist_ok=True)
+    wallet.WALLET_PATH.write_text(wallet.SEED_WALLET_PATH.read_text())
 
 app = FastAPI(title="Pointwise", version="0.1.0")
 app.include_router(routes_money.router)

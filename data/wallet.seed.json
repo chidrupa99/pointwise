@@ -1,0 +1,8 @@
+{
+  "cards": [
+    { "card_id": "citi-double-cash",        "opened_on": "2021-11-05" },
+    { "card_id": "amex-gold",               "opened_on": "2023-06-12" },
+    { "card_id": "citi-custom-cash",        "opened_on": "2025-02-18" },
+    { "card_id": "capital-one-venture-x",   "opened_on": "2026-09-28" }
+  ]
+}

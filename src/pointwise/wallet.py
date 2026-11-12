@@ -27,6 +27,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from .models import Card, RewardUnit
 
 WALLET_PATH = Path(__file__).resolve().parents[2] / "data" / "wallet.json"
+#: wallet.json is runtime state and is not committed, so a fresh checkout or
+#: a cloud deploy has none. Fall back to this committed seed rather than
+#: answering "no eligible card" to the first person who tries the demo.
+SEED_WALLET_PATH = Path(__file__).resolve().parents[2] / "data" / "wallet.seed.json"
 
 _ZERO = Decimal("0")
 
