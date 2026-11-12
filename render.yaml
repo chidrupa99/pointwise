@@ -1,0 +1,17 @@
+# One-click deploy of the Pointwise API and its browser console.
+#
+# Nothing here needs credentials: the engine, the ranking and the console all
+# run from the seed corpus in data/. Add PAYPAL_*, PLAID_* or ANTHROPIC_API_KEY
+# in the Render dashboard to light up the live paths; without them the app
+# reports configured:false and falls back to bundled data.
+services:
+  - type: web
+    name: pointwise
+    runtime: python
+    plan: free
+    buildCommand: pip install -e .
+    startCommand: uvicorn pointwise.api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/cards
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
