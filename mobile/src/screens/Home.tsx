@@ -28,12 +28,14 @@ import { CardTile, TILE_HEIGHT, TILE_WIDTH } from '../components/CardTile';
 import { EmptyWallet } from '../components/EmptyWallet';
 import { LocationBanner } from '../components/LocationBanner';
 import {
+  SPANS,
   fetchActivity,
-  formatDate,
   fetchPayPalStatus,
   fetchWallet,
   type Activity,
+  withinPeriod,
   type PayPalStatus,
+  type Span,
   type WalletResponse,
 } from '../wallet';
 import {
@@ -101,6 +103,9 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
   const [showAll, setShowAll] = useState(false);
   //: Which tile the rail is resting on, for the dots beneath it.
   const [cardIndex, setCardIndex] = useState(0);
+  //: Which window the feed is showing. Starts wide: a demo wallet or a
+  //: new user's first week would otherwise open on an empty list.
+  const [span, setSpan] = useState<Span>('all');
 
   const load = useCallback(async (cardId: string | null) => {
     setError(null);
@@ -126,16 +131,15 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
     void load(filter);
   }, [filter, load, reloadKey]);
 
-  const shown = showAll ? activity : activity.slice(0, PREVIEW_ROWS);
+  // Filtering happens here rather than at the API: every row is already
+  // loaded, so a period change is instant and costs no round trip.
+  const inPeriod = useMemo(
+    () => activity.filter((a) => withinPeriod(a.on, span)),
+    [activity, span],
+  );
+  const shown = showAll ? inPeriod : inPeriod.slice(0, PREVIEW_ROWS);
   const empty = wallet?.is_empty ?? false;
   const filtered = wallet?.cards.find((c) => c.card_id === filter);
-  const period = useMemo(() => {
-    if (activity.length === 0) return null;
-    const days = activity.map((a) => a.on).sort();
-    const first = formatDate(days[0]);
-    const last = formatDate(days[days.length - 1]);
-    return first === last ? first : `${first} – ${last}`;
-  }, [activity]);
 
   return (
     <View style={s.root}>
@@ -203,9 +207,7 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
                       on the screen and the first one a reader would catch. */}
                   {/* "Rewards", not "points": the total includes cash back
                       from two Citi cards, which earn no points at all. */}
-                  <Text style={s.heroLabel}>
-                    Total rewards{period ? ` · ${period}` : ''}
-                  </Text>
+                  <Text style={s.heroLabel}>Total rewards</Text>
                   <Text style={s.heroValue}>
                     {money(wallet.totals.value_earned_dollars)}
                   </Text>
@@ -329,6 +331,37 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
                       : 'Link an issuer in Account to audit real spending'}
                 </Text>
               )}
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={s.spans}
+                style={s.spansOuter}
+              >
+                {SPANS.map((option) => {
+                  const on = option.key === span;
+                  return (
+                    <Pressable
+                      key={option.key}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: on }}
+                      onPress={() => {
+                        setSpan(option.key);
+                        setShowAll(false);
+                      }}
+                      style={({ pressed }) => [
+                        s.span,
+                        on && s.spanOn,
+                        pressed && { opacity: 0.7 },
+                      ]}
+                    >
+                      <Text style={[s.spanText, on && s.spanTextOn]}>
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
           )}
 
@@ -339,20 +372,24 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
               ))}
           </View>
 
-          {!empty && activity.length > PREVIEW_ROWS && (
+          {!empty && inPeriod.length > PREVIEW_ROWS && (
             <Pressable
               accessibilityRole="button"
               onPress={() => setShowAll((v) => !v)}
               style={({ pressed }) => [s.more, pressed && { opacity: 0.6 }]}
             >
               <Text style={s.moreText}>
-                {showAll ? 'Show less' : `See all ${activity.length}`}
+                {showAll ? 'Show less' : `See all ${inPeriod.length}`}
               </Text>
             </Pressable>
           )}
 
-          {!empty && activity.length === 0 && !busy && (
-            <Text style={s.none}>Nothing on this card yet.</Text>
+          {!empty && inPeriod.length === 0 && !busy && (
+            <Text style={s.none}>
+              {activity.length === 0
+                ? 'Nothing on this card yet.'
+                : 'No purchases in this period.'}
+            </Text>
           )}
           </View>
         </ScrollView>
@@ -491,6 +528,22 @@ const styles = (t: Theme) =>
     },
     clear: { ...type.label, fontFamily: UI_SEMI, color: t.accent },
     scope: { ...type.small, color: t.inkFaint },
+
+    // The period chips sit between the heading and the rows they govern.
+    spansOuter: { marginHorizontal: -space.lg, marginTop: space.md },
+    spans: { gap: space.sm, paddingHorizontal: space.lg },
+    span: {
+      paddingHorizontal: space.md,
+      height: 32,
+      borderRadius: radius.pill,
+      borderWidth: 1,
+      borderColor: t.rule,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    spanOn: { backgroundColor: t.accent, borderColor: t.accent },
+    spanText: { ...type.small, fontFamily: UI_SEMI, color: t.inkSoft },
+    spanTextOn: { color: t.accentInk },
 
     feed: { gap: space.sm },
     more: { alignItems: 'center', paddingVertical: space.lg },

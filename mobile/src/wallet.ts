@@ -211,3 +211,35 @@ export function formatDate(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
   return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 }
+
+/** The windows the activity feed can be narrowed to. */
+export type Span = 'month' | 'last_month' | 'year' | 'all';
+
+export const SPANS: ReadonlyArray<{ key: Span; label: string }> = [
+  { key: 'month', label: 'This month' },
+  { key: 'last_month', label: 'Last month' },
+  { key: 'year', label: 'This year' },
+  { key: 'all', label: 'All time' },
+];
+
+/**
+ * Whether a row's date falls inside `span`.
+ *
+ * Calendar months, not rolling windows: "last month" on 2 January has to mean
+ * December, not the 2nd of December onward, and the year has to roll back
+ * with it. `today` is injectable so the boundary cases are testable without
+ * waiting for a particular date.
+ */
+export function withinPeriod(iso: string, span: Span, today = new Date()): boolean {
+  if (span === 'all') return true;
+  const d = new Date(`${iso}T00:00:00`);
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  if (span === 'year') return d.getFullYear() === year;
+  if (span === 'month') {
+    return d.getFullYear() === year && d.getMonth() === month;
+  }
+  const lastMonth = month === 0 ? 11 : month - 1;
+  const lastYear = month === 0 ? year - 1 : year;
+  return d.getFullYear() === lastYear && d.getMonth() === lastMonth;
+}
