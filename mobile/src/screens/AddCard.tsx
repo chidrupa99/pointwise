@@ -224,9 +224,23 @@ export function AddCard({ onDone, onConnect }: Props) {
           <View key={bank.issuer} style={s.bank}>
             <View style={s.bankHead}>
               <Text style={s.bankName}>{bank.issuer}</Text>
-              <Text style={[s.bankState, bank.connected && s.bankStateOn]}>
-                {bank.connected ? 'Connected' : 'Not connected'}
-              </Text>
+              {/* State and remedy share the slot, because for an unconnected
+                  bank the useful thing is the action, not the label. A line
+                  under the group saying "not connected" and a second one
+                  below the rows saying "connect" were the same sentence
+                  twice, with the cards in between. */}
+              {bank.connected ? (
+                <Text style={[s.bankState, s.bankStateOn]}>Connected</Text>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Connect ${bank.issuer} to read these statements`}
+                  onPress={onConnect}
+                  hitSlop={8}
+                >
+                  <Text style={s.bankConnect}>Connect &rarr;</Text>
+                </Pressable>
+              )}
             </View>
 
             {bank.cards.map((card) => {
@@ -298,18 +312,6 @@ export function AddCard({ onDone, onConnect }: Props) {
                 </Pressable>
               );
             })}
-
-            {!bank.connected && (
-              <Pressable
-                accessibilityRole="button"
-                onPress={onConnect}
-                style={({ pressed }) => [s.connect, pressed && { opacity: 0.6 }]}
-              >
-                <Text style={s.connectText}>
-                  Connect {bank.issuer} to read these statements &rarr;
-                </Text>
-              </Pressable>
-            )}
           </View>
         ))}
       </ScrollView>
@@ -348,6 +350,7 @@ const styles = (t: Theme) =>
     bankName: { fontFamily: UI_BOLD, fontSize: 15, color: t.ink },
     bankState: { ...type.small, fontSize: 11, color: t.inkFaint },
     bankStateOn: { color: t.ok },
+    bankConnect: { ...type.small, fontSize: 12, fontFamily: UI_SEMI, color: t.accent },
 
     row: {
       flexDirection: 'row',
@@ -380,9 +383,6 @@ const styles = (t: Theme) =>
     offer: { alignItems: 'flex-end' },
     offerValue: { fontFamily: MONO_MED, fontSize: 14, color: t.accent },
     offerLabel: { ...type.small, fontSize: 9.5, color: t.inkFaint },
-
-    connect: { paddingVertical: space.sm, paddingHorizontal: space.xs },
-    connectText: { ...type.small, fontSize: 12, color: t.accent },
 
     chosen: { borderRadius: radius.md, padding: space.lg },
     chosenName: { fontFamily: UI_BOLD, fontSize: 20 },
