@@ -240,6 +240,25 @@ class PlaidClient:
         """
         self._post("/item/remove", {"access_token": access_token})
 
+    def link_session_token(self, link_token: str) -> str | None:
+        """The public token a finished hosted Link session produced.
+
+        Hosted Link runs in the user's browser and finishes out of our sight.
+        Plaid's own answer to that is a webhook, which needs a public URL this
+        app does not have, so the session is read back instead: None while it
+        is still in progress, a public token once a bank has been added.
+
+        Reading the session also means a user who closes the tab mid-flow
+        simply gets no token, rather than leaving the app waiting on a
+        callback that is never coming.
+        """
+        body = self._post("/link/token/get", {"link_token": link_token})
+        for session in body.get("link_sessions") or []:
+            for added in (session.get("results") or {}).get("item_add_results") or []:
+                if added.get("public_token"):
+                    return added["public_token"]
+        return None
+
     def institution_name(self, access_token: str) -> str | None:
         """What Plaid calls the bank behind a linked item.
 

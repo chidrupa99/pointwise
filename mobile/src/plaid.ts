@@ -59,6 +59,25 @@ export async function fetchPlaidStatus(): Promise<PlaidStatus> {
   return response.json();
 }
 
+/** Plaid's own hosted Link page: the bank list, the sign-in, the consent. */
+export const startLink = () =>
+  call<{ link_token: string; hosted_link_url: string | null }>(
+    '/api/plaid/link-token',
+  );
+
+/**
+ * Read back what a finished Link session produced.
+ *
+ * `linked: false` is the ordinary outcome of someone closing Link without
+ * picking a bank, not a failure.
+ */
+export const completeLink = (linkToken: string) =>
+  call<{ linked: boolean; transactions?: number }>(
+    '/api/plaid/link-complete',
+    'POST',
+    { link_token: linkToken },
+  );
+
 /** Sandbox only: mints a linked test issuer with no Link UI at all. */
 export const linkSandboxIssuer = () => call<{ linked: boolean }>('/api/plaid/sandbox-link');
 

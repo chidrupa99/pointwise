@@ -46,6 +46,7 @@ export function HeroBand({
   cardCount,
   onOpenChat,
   onOpenAccount,
+  onOpenPay,
 }: {
   theme: Theme;
   /** What the cards earned. Null while the wallet is still loading. */
@@ -55,6 +56,7 @@ export function HeroBand({
   cardCount: number;
   onOpenChat: () => void;
   onOpenAccount: () => void;
+  onOpenPay: () => void;
 }) {
   return (
     <LinearGradient
@@ -84,6 +86,17 @@ export function HeroBand({
               style={({ pressed }) => [s.ask, pressed && { opacity: 0.6 }]}
             >
               <Text style={s.askText}>Ask</Text>
+            </Pressable>
+            {/* Filled, where Ask is outlined: this is the only control on
+                the page that spends money, and it should not look like a
+                sibling of a chat button. */}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Pay with the best card"
+              onPress={onOpenPay}
+              style={({ pressed }) => [s.pay, pressed && { opacity: 0.8 }]}
+            >
+              <Text style={s.payText}>Pay</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -159,6 +172,15 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   askText: { fontFamily: UI_SEMI, fontSize: 14, color: BAND_INK },
+  pay: {
+    paddingHorizontal: space.lg,
+    height: 36,
+    borderRadius: radius.pill,
+    backgroundColor: BAND_INK,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  payText: { fontFamily: UI_SEMI, fontSize: 14, color: BAND_BOTTOM },
   icon: {
     width: 36,
     height: 36,

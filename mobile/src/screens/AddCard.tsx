@@ -84,13 +84,12 @@ export function AddCard({ onDone, onConnect }: Props) {
       .catch((e) => setError(e instanceof Error ? e.message : String(e)));
   }, []);
 
-  const save = useCallback(
-    async (openedOn: string | null) => {
-      if (!chosen) return;
+  const finish = useCallback(
+    async (card: CatalogCard, openedOn: string | null) => {
       setBusy(true);
       setError(null);
       try {
-        await addCard(chosen.card_id, openedOn);
+        await addCard(card.card_id, openedOn);
         // Naming a card tells us what the user carries. It does not give us
         // their spending on it, and the tile that follows would otherwise sit
         // at zero with no account of itself. If a connected bank already
@@ -100,7 +99,7 @@ export function AddCard({ onDone, onConnect }: Props) {
         try {
           const w = await fetchWallet();
           covered =
-            w.cards.find((c) => c.card_id === chosen.card_id)?.statement_linked ??
+            w.cards.find((c) => c.card_id === card.card_id)?.statement_linked ??
             false;
         } catch {
           // A failed check is not a reason to block the add. Offering the
@@ -109,7 +108,7 @@ export function AddCard({ onDone, onConnect }: Props) {
         if (covered) {
           onDone(true);
         } else {
-          setOrphan(chosen);
+          setOrphan(card);
           setBusy(false);
         }
       } catch (e) {
@@ -117,7 +116,22 @@ export function AddCard({ onDone, onConnect }: Props) {
         setBusy(false);
       }
     },
-    [chosen, onDone],
+    [onDone],
+  );
+
+  /** From the list, for a card with no offer: no date to ask about. */
+  const saveDirect = useCallback(
+    (card: CatalogCard) => finish(card, null),
+    [finish],
+  );
+
+  /** From the date step, for a card that has an offer. */
+  const save = useCallback(
+    (openedOn: string | null) => {
+      if (!chosen) return;
+      return finish(chosen, openedOn);
+    },
+    [chosen, finish],
   );
 
   // Added, but nothing is reading its statement.
@@ -173,7 +187,7 @@ export function AddCard({ onDone, onConnect }: Props) {
             <Text style={s.chosenIssuer}>{chosen.issuer}</Text>
           </View>
 
-          {chosen.signup_bonus ? (
+          {chosen.signup_bonus && (
             <Text style={s.why}>
               {chosen.name} has a welcome offer worth about{' '}
               {`$${Math.round(Number(chosen.signup_bonus.worth_dollars))}`} —
@@ -183,11 +197,6 @@ export function AddCard({ onDone, onConnect }: Props) {
               within {chosen.signup_bonus.within_months} months. Tell Pointwise
               when you opened the account and it will track how far along you
               are.
-            </Text>
-          ) : (
-            <Text style={s.why}>
-              Pointwise holds no welcome offer for this card, so the date is
-              only for your own record.
             </Text>
           )}
 
@@ -246,7 +255,13 @@ export function AddCard({ onDone, onConnect }: Props) {
             accessibilityRole="button"
             accessibilityState={{ disabled: card.held }}
             disabled={card.held}
-            onPress={() => setChosen(card)}
+            // The open date exists to place a welcome-offer window. A card
+            // with no offer has no window, which the next screen used to
+            // admit in so many words -- a question asked and then disowned.
+            // Skip straight to saving it.
+            onPress={() =>
+              card.signup_bonus ? setChosen(card) : void saveDirect(card)
+            }
             style={({ pressed }) => [
               s.row,
               card.held && s.rowHeld,

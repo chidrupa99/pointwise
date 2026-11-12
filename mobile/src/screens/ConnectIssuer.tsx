@@ -19,12 +19,15 @@ import {
   View,
   useColorScheme,
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
   fetchPlaidStatus,
   linkSandboxIssuer,
   mapAccount,
+  completeLink,
+  startLink,
   syncIssuers,
   unlinkIssuer,
   type PlaidStatus,
@@ -87,6 +90,39 @@ export function ConnectIssuer({ onChanged }: Props) {
   // arrive on the same login.
   const links = status?.links ?? [];
 
+  /**
+   * Plaid's hosted Link page, opened in a web view.
+   *
+   * The browser hands back nothing on the way out -- a public token in a
+   * redirect URL would be a credential in a URL -- so once the sheet closes
+   * the server is asked what the session produced. Someone who backed out
+   * without choosing a bank gets told that, not an error.
+   */
+  const connect = useCallback(async () => {
+    setBusy('link');
+    setError(null);
+    setNote(null);
+    try {
+      const { link_token, hosted_link_url } = await startLink();
+      if (!hosted_link_url) throw new Error('Plaid returned no Link URL.');
+      await WebBrowser.openAuthSessionAsync(hosted_link_url);
+      const done = await completeLink(link_token);
+      if (done.linked) {
+        setNote(
+          'Connected. Tell us which card each account is and Pointwise will price your history.',
+        );
+        await refresh();
+        onChanged();
+      } else {
+        setNote('Nothing was connected.');
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(null);
+    }
+  }, [refresh, onChanged]);
+
   return (
     <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={s.scroll}>
@@ -114,17 +150,11 @@ export function ConnectIssuer({ onChanged }: Props) {
           <>
             <Pressable
               accessibilityRole="button"
-              disabled={busy !== null || !status.sandbox_shortcut_available}
-              onPress={() =>
-                run(
-                  'link',
-                  linkSandboxIssuer,
-                  'Connected. Tell us which card each account is and Pointwise will price your history.',
-                )
-              }
+              disabled={busy !== null}
+              onPress={() => void connect()}
               style={({ pressed }) => [
                 s.cta,
-                (busy !== null || !status.sandbox_shortcut_available) && s.ctaOff,
+                busy !== null && s.ctaOff,
                 pressed && { opacity: 0.8 },
               ]}
             >
@@ -141,6 +171,27 @@ export function ConnectIssuer({ onChanged }: Props) {
                 You sign in to your bank on their own screen. Pointwise never
                 sees your banking password, and never asks for a card number.
               </Text>
+            )}
+
+            {/* The sign-in is a web view and five taps. That is the honest
+                flow and it stays the button, but a presentation runs on
+                someone else's wifi, so the direct path stays reachable. */}
+            {status.sandbox_shortcut_available && (
+              <Pressable
+                accessibilityRole="button"
+                disabled={busy !== null}
+                onPress={() =>
+                  run(
+                    'link',
+                    linkSandboxIssuer,
+                    'Connected. Tell us which card each account is and Pointwise will price your history.',
+                  )
+                }
+                hitSlop={6}
+                style={({ pressed }) => [s.skip, pressed && { opacity: 0.6 }]}
+              >
+                <Text style={s.skipText}>Skip the sign-in (sandbox)</Text>
+              </Pressable>
             )}
           </>
         )}
@@ -323,6 +374,8 @@ const styles = (t: Theme) =>
     },
     ctaOff: { opacity: 0.45 },
     ctaText: { color: t.accentInk, fontFamily: UI, fontSize: 15.5, fontWeight: '600' },
+    skip: { alignItems: 'center', paddingVertical: space.sm },
+    skipText: { fontFamily: UI, fontSize: 12.5, color: t.inkFaint },
     fine: { fontFamily: UI, fontSize: 12, lineHeight: 18, color: t.inkFaint },
 
     block: {

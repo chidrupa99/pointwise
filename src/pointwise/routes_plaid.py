@@ -87,6 +87,51 @@ class ExchangeRequest(BaseModel):
     public_token: str = Field(min_length=10)
 
 
+#: How long to give Plaid to finalise a session the user has just finished.
+LINK_POLL_ATTEMPTS = 4
+LINK_POLL_WAIT_SECONDS = 1.5
+
+
+class LinkCompleteRequest(BaseModel):
+    #: The token the hosted Link page was opened with.
+    link_token: str = Field(min_length=10)
+
+
+@router.post("/api/plaid/link-complete")
+def link_complete(req: LinkCompleteRequest) -> dict:
+    """Finish a hosted Link flow by reading its session back.
+
+    The browser hands us nothing on the way out -- no public token in the
+    redirect, because that would put a credential in a URL. So the session is
+    asked what it produced.
+
+    A user who closed Link without finishing is not an error. They are told
+    nothing was connected and the screen stays where it was.
+    """
+    # Plaid finalises the session a moment after the user sees "Success", and
+    # the web view closes on their tap, not on that. Asking once lands in the
+    # gap often enough to look like a failed connection, so ask a few times
+    # before believing the answer.
+    public_token = None
+    try:
+        for attempt in range(LINK_POLL_ATTEMPTS):
+            if attempt:
+                time.sleep(LINK_POLL_WAIT_SECONDS)
+            public_token = PLAID.link_session_token(req.link_token)
+            if public_token:
+                break
+    except PlaidNotConfigured as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=502, detail=f"Plaid rejected the request: {exc.response.text}"
+        ) from exc
+
+    if public_token is None:
+        return {"linked": False}
+    return _link_from_public_token(public_token)
+
+
 @router.post("/api/plaid/exchange", status_code=201)
 def exchange(req: ExchangeRequest) -> dict:
     """Finish a Link flow: swap the public token and read the accounts."""

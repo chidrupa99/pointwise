@@ -61,6 +61,7 @@ interface Props {
   onAddCard: () => void;
   /** Opens the connect flow straight from the empty state. */
   onConnectIssuer: () => void;
+  onOpenPay: () => void;
   /** Bumped by the parent after a card is added, to force a refetch. */
   reloadKey?: number;
 }
@@ -70,6 +71,7 @@ export function Home({
   onOpenAccount,
   onAddCard,
   onConnectIssuer,
+  onOpenPay,
   reloadKey,
 }: Props) {
   const theme: Theme = useColorScheme() === 'light' ? light : dark;
@@ -149,6 +151,7 @@ export function Home({
             cardCount={wallet?.cards.length ?? 0}
             onOpenChat={onOpenChat}
             onOpenAccount={onOpenAccount}
+            onOpenPay={onOpenPay}
           />
 
           <View style={s.page}>
