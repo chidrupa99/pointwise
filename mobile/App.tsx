@@ -173,7 +173,7 @@ function AccountSheet({
         </View>
       )}
       <Text style={s.accountNote}>
-        Notification and privacy settings go here. Not built yet.
+        More settings are on the way.
       </Text>
       <View style={s.accountList}>
         <Pressable

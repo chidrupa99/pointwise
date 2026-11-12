@@ -12,6 +12,7 @@
  * they lose the progress bar, not the card.
  */
 
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -26,11 +27,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
   addCard,
-  cardColor,
   fetchCatalog,
   type CatalogCard,
 } from '../wallet';
-import { MONO, UI, dark, light, radius, space, type Theme } from '../theme';
+import {
+  MONO,
+  MONO_MED,
+  UI,
+  cardFinish,
+  dark,
+  light,
+  radius,
+  space,
+  type Theme,
+} from '../theme';
 
 interface Props {
   onDone: (added: boolean) => void;
@@ -100,7 +110,7 @@ export function AddCard({ onDone }: Props) {
           <View
             style={[
               s.chosen,
-              { backgroundColor: cardColor(chosen.issuer, chosen.card_id) },
+              { backgroundColor: cardFinish(chosen.card_id).gradient[1] },
             ]}
           >
             <Text style={s.chosenName}>{chosen.name}</Text>
@@ -187,11 +197,11 @@ export function AddCard({ onDone }: Props) {
               pressed && !card.held && { opacity: 0.7 },
             ]}
           >
-            <View
-              style={[
-                s.swatch,
-                { backgroundColor: cardColor(card.issuer, card.card_id) },
-              ]}
+            <LinearGradient
+              colors={cardFinish(card.card_id).gradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={s.swatch}
             />
             <View style={s.rowMid}>
               <Text style={s.rowName}>{card.name}</Text>
@@ -208,12 +218,12 @@ export function AddCard({ onDone }: Props) {
             {card.held ? (
               <Text style={s.held}>In wallet</Text>
             ) : card.signup_bonus ? (
-              <Text style={s.offer}>
-                {Math.round(
-                  Number(card.signup_bonus.points) / 1000,
-                )}
-                k
-              </Text>
+              <View style={s.offerWrap}>
+                <Text style={s.offer}>
+                  {Math.round(Number(card.signup_bonus.points) / 1000)}k
+                </Text>
+                <Text style={s.offerLabel}>bonus</Text>
+              </View>
             ) : null}
           </Pressable>
         ))}
@@ -258,17 +268,20 @@ const styles = (t: Theme) =>
       padding: space.md,
     },
     rowHeld: { opacity: 0.45 },
-    swatch: { width: 34, height: 22, borderRadius: radius.sm },
-    rowMid: { flex: 1, gap: space.xs },
+    swatch: { width: 40, height: 26, borderRadius: 5 },
+    rowMid: { flex: 1, gap: 1 },
     rowName: { fontFamily: UI, fontSize: 15, fontWeight: '600', color: t.ink },
     rowMeta: { fontFamily: UI, fontSize: 12, color: t.inkFaint },
     rowHeadline: { fontFamily: UI, fontSize: 12, color: t.inkSoft },
     held: { fontFamily: UI, fontSize: 11, color: t.inkFaint, fontWeight: '600' },
-    offer: {
-      fontFamily: MONO,
-      fontSize: 13,
-      color: t.ok,
-      fontWeight: '700',
+    offerWrap: { alignItems: 'flex-end' },
+    offer: { fontFamily: MONO_MED, fontSize: 14, color: t.accent },
+    offerLabel: {
+      fontFamily: UI,
+      fontSize: 10,
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
+      color: t.inkFaint,
     },
     foot: { fontFamily: UI, fontSize: 12, lineHeight: 18, color: t.inkFaint, marginTop: space.md },
 

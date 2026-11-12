@@ -87,9 +87,9 @@ export function ConnectIssuer({ onChanged }: Props) {
     <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={s.scroll}>
         <Text style={s.lead}>
-          Pointwise can only audit purchases it routed itself. Linking a card
-          issuer lets it read the card&rsquo;s own statement, so spending made
-          any way at all gets scored.
+          Linking an issuer lets Pointwise read the card&rsquo;s own
+          statement. However you paid &mdash; tapped, typed, or through PayPal
+          &mdash; it lands on the card, and the card is what gets scored.
         </Text>
 
         {!status && !error && (
@@ -100,13 +100,6 @@ export function ConnectIssuer({ onChanged }: Props) {
           <View style={s.notice}>
             <Text style={s.noticeTitle}>Plaid is not configured</Text>
             <Text style={s.noticeBody}>{status.hint}</Text>
-          </View>
-        )}
-
-        {status?.configured && (
-          <View style={s.envRow}>
-            <Text style={s.envLabel}>environment</Text>
-            <Text style={s.envValue}>{status.environment}</Text>
           </View>
         )}
 
@@ -142,8 +135,8 @@ export function ConnectIssuer({ onChanged }: Props) {
           <View style={s.block}>
             <Text style={s.blockTitle}>{link.institution_name}</Text>
             <Text style={s.blockMeta}>
-              Linked {link.linked_at.replace('T', ' ')} · credential held
-              server-side ({link.access_token_length} chars)
+              Linked {link.linked_at.slice(0, 10)} · credentials never leave
+              the server
             </Text>
 
             {link.accounts.length === 0 && (
@@ -232,13 +225,13 @@ export function ConnectIssuer({ onChanged }: Props) {
               ]}
             >
               <Text style={s.ctaText}>
-                {busy === 'sync' ? 'Pulling…' : 'Pull transactions'}
+                {busy === 'sync' ? 'Syncing…' : 'Sync now'}
               </Text>
             </Pressable>
 
             <View style={s.stats}>
               <Text style={s.stat}>
-                {status.transactions_cached} transactions held
+                {status.transactions_cached} transactions synced
               </Text>
               {status.unmapped_accounts > 0 && (
                 <Text style={s.statWarn}>
@@ -287,9 +280,6 @@ const styles = (t: Theme) =>
     noticeTitle: { fontFamily: UI, fontSize: 14, fontWeight: '700', color: t.warn },
     noticeBody: { fontFamily: UI, fontSize: 13, lineHeight: 19, color: t.inkSoft },
 
-    envRow: { flexDirection: 'row', justifyContent: 'space-between' },
-    envLabel: { fontFamily: MONO, fontSize: 11, color: t.inkFaint },
-    envValue: { fontFamily: MONO, fontSize: 11, color: t.ink },
 
     cta: {
       backgroundColor: t.accent,

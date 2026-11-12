@@ -75,17 +75,14 @@ export function BonusBar({
           ]}
         />
       </View>
-      {/* One line, two facts. The deadline leads because it is the part
-          that cannot be recovered; the stake is what it is worth. A separate
-          "WELCOME OFFER" heading above this cost a line of tile height and
-          told the reader nothing the bar did not. */}
+      {/* Deadline and distance, one line. The stake -- what the offer is
+          worth -- was here too and pushed the row past the tile edge; it
+          belongs where there is room to say it, not clipped at 228pt. */}
       <View style={s.row}>
         <Text style={[s.note, urgent && { color: finish.onWarn }]}>
           {bonus.days_left}d left
         </Text>
-        <Text style={s.note}>
-          {dollars(bonus.remaining)} to go · {dollars(bonus.worth_dollars)}
-        </Text>
+        <Text style={s.note}>{dollars(bonus.remaining)} to go</Text>
       </View>
     </View>
   );
