@@ -44,6 +44,12 @@ export interface WalletCard {
    * not return this account -- a different gap, and a different remedy.
    */
   issuer_connected: boolean;
+  /**
+   * Whether a connection at this issuer still has an account nobody has
+   * claimed. False with issuer_connected true means there is nothing to
+   * match this card to, so there is no action to offer.
+   */
+  unmatched_account_at_issuer: boolean;
   opened_on: string | null;
   signup_bonus: SignupBonus | null;
 }

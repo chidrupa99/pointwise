@@ -146,12 +146,8 @@ def get_wallet() -> dict:
     # give us their spending on it, and a tile that shows zero without saying
     # why reads as "this card earned you nothing" rather than "we cannot see
     # this card".
-    reading = {
-        a.card_id
-        for li in plaid_store.read().links
-        for a in li.accounts
-        if a.card_id
-    }
+    links = plaid_store.read().links
+    reading = {a.card_id for li in links for a in li.accounts if a.card_id}
 
     # Which issuers already have a connection. Derived from the cards mapped
     # on those connections rather than by matching the institution's name,
@@ -163,6 +159,29 @@ def get_wallet() -> dict:
     # already connected: the connection exists and simply did not return this
     # account.
     connected_issuers = {BY_ID[c].issuer for c in reading if c in BY_ID}
+
+    # And whether anything is left to match it to. A connection whose accounts
+    # are all claimed has nothing to offer a further card at that issuer --
+    # the card is simply not on that login. An action there would walk the
+    # user to a screen whose only honest answer is "nothing here", so the tile
+    # offers none.
+    #
+    # A link's issuer comes from a card already mapped on it. One with no
+    # mappings yet has no known issuer and contributes to nobody; a card at
+    # that issuer still reads "not connected", where Connect is the right
+    # word anyway.
+    spare: set[str] = set()
+    for li in links:
+        issuer = next(
+            (
+                BY_ID[a.card_id].issuer
+                for a in li.accounts
+                if a.card_id and a.card_id in BY_ID
+            ),
+            None,
+        )
+        if issuer and any(a.card_id is None for a in li.accounts):
+            spare.add(issuer)
 
     return {
         "source": source,
@@ -186,6 +205,7 @@ def get_wallet() -> dict:
                 "transaction_count": w.transaction_count,
                 "statement_linked": w.card_id in reading,
                 "issuer_connected": w.issuer in connected_issuers,
+                "unmatched_account_at_issuer": w.issuer in spare,
                 "opened_on": (
                     o.opened_on.isoformat()
                     if (o := held.entry(w.card_id)) and o.opened_on
@@ -242,29 +262,6 @@ def get_activity(card_id: str | None = None, limit: int = 100) -> dict:
     scored = score_all(raws, my_cards())
     if card_id:
         scored = [a for a in scored if a.card_id == card_id]
-
-    # Which cards Pointwise is actually reading a statement for. A card added
-    # from the catalogue is the user telling us what they carry; it does not
-    # give us their spending on it, and a tile that shows zero without saying
-    # why reads as "this card earned you nothing" rather than "we cannot see
-    # this card".
-    reading = {
-        a.card_id
-        for li in plaid_store.read().links
-        for a in li.accounts
-        if a.card_id
-    }
-
-    # Which issuers already have a connection. Derived from the cards mapped
-    # on those connections rather than by matching the institution's name,
-    # because the two are not the same string -- Plaid says "Citibank Online"
-    # where the corpus says "Citi", and a card would silently look
-    # unconnected.
-    #
-    # It matters because "Connect" is the wrong word for a card whose bank is
-    # already connected: the connection exists and simply did not return this
-    # account.
-    connected_issuers = {BY_ID[c].issuer for c in reading if c in BY_ID}
 
     return {
         "source": source,

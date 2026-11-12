@@ -20,6 +20,7 @@ import {
   type MallStore,
   type NearbyPlace,
 } from '../nearby';
+import { PinIcon } from './PinIcon';
 import { MONO, radius, space, type, money, type Theme } from '../theme';
 
 /** How long a "nothing here" result stays before the banner resets. */
@@ -137,7 +138,9 @@ export function LocationBanner({ theme }: Props) {
         style={({ pressed }) => [s.banner, s.inviteBanner, pressed && { opacity: 0.8 }]}
       >
         <View style={s.row}>
-          <Text style={s.pin}>◎</Text>
+          <View style={s.pin}>
+            <PinIcon color={theme.accent} />
+          </View>
           {/* One sentence. The heading and the body underneath it said the
               same thing twice, which is how a banner earns a dismissal. */}
           <View style={s.flex}>
@@ -194,7 +197,9 @@ export function LocationBanner({ theme }: Props) {
         ]}
       >
         <View style={s.row}>
-          <Text style={s.pin}>◎</Text>
+          <View style={s.pin}>
+            <PinIcon color={theme.accent} />
+          </View>
           <Text style={[s.inviteTitle, s.flex]} numberOfLines={1}>
             No shop recognised here
           </Text>
@@ -311,7 +316,7 @@ const styles = (t: Theme) =>
 
     row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
     flex: { flex: 1 },
-    pin: { fontSize: 18, color: t.accent, marginTop: 1 },
+    pin: { marginTop: 1 },
     close: { paddingHorizontal: 2 },
     closeText: { fontSize: 15, color: t.inkFaint, fontWeight: '600' },
 

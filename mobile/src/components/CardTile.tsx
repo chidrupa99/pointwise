@@ -126,7 +126,13 @@ export function CardTile({
             lines at tile width, and it is redundant anyway: the card it sits
             on already says whose it is. The full phrasing stays as the
             accessibility label, where length costs nothing. */}
-        {!card.statement_linked ? (
+        {/* Only when there is something to do. An issuer that is connected
+            with every account already claimed has nothing left to match this
+            card to -- the card is not on that login, and a button would walk
+            the user to a screen that can only shrug. The line above still
+            explains the zero; it just does not pretend to be fixable. */}
+        {!card.statement_linked &&
+        (!card.issuer_connected || card.unmatched_account_at_issuer) ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={
