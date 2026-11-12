@@ -9,7 +9,7 @@
  */
 
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -29,6 +29,7 @@ import { EmptyWallet } from '../components/EmptyWallet';
 import { LocationBanner } from '../components/LocationBanner';
 import {
   fetchActivity,
+  formatDate,
   fetchPayPalStatus,
   fetchWallet,
   type Activity,
@@ -128,6 +129,13 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
   const shown = showAll ? activity : activity.slice(0, PREVIEW_ROWS);
   const empty = wallet?.is_empty ?? false;
   const filtered = wallet?.cards.find((c) => c.card_id === filter);
+  const period = useMemo(() => {
+    if (activity.length === 0) return null;
+    const days = activity.map((a) => a.on).sort();
+    const first = formatDate(days[0]);
+    const last = formatDate(days[days.length - 1]);
+    return first === last ? first : `${first} – ${last}`;
+  }, [activity]);
 
   return (
     <View style={s.root}>
@@ -188,16 +196,27 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
 
               {wallet && !empty && (
                 <View style={s.hero}>
-                  <Text style={s.heroLabel}>Left on the table</Text>
-                  <Text style={s.heroValue}>
-                    {money(wallet.totals.missed_dollars)}
+                  {/* "Earned on your cards", not "earned with Pointwise".
+                      These rewards were earned whether or not this app
+                      existed -- it reads the statement, it does not cause the
+                      spending. Claiming the credit would be the easiest lie
+                      on the screen and the first one a reader would catch. */}
+                  <Text style={s.heroLabel}>
+                    Earned on your cards{period ? ` · ${period}` : ''}
                   </Text>
+                  <Text style={s.heroValue}>
+                    {money(wallet.totals.value_earned_dollars)}
+                  </Text>
+                  {/* The app's own finding, in the colour that means money
+                      left. A total of points was here and has gone: it added
+                      Amex points to Capital One miles, two currencies at two
+                      valuations, and counted the cash-back cards as zero. */}
                   <Text style={s.heroSub}>
-                    {money(wallet.totals.value_earned_dollars)} earned ·{' '}
-                    {Math.round(
-                      Number(wallet.totals.points_earned),
-                    ).toLocaleString('en-US')}{' '}
-                    pts
+                    You could have had{' '}
+                    <Text style={s.heroSubStrong}>
+                      {money(wallet.totals.missed_dollars)}
+                    </Text>{' '}
+                    more
                   </Text>
                 </View>
               )}
@@ -400,11 +419,12 @@ const styles = (t: Theme) =>
       letterSpacing: -2,
     },
     heroSub: {
-      ...type.label,
+      ...type.body,
       color: BAND_INK_SOFT,
-      marginTop: space.xs,
+      marginTop: space.sm,
       fontVariant: ['tabular-nums'],
     },
+    heroSubStrong: { fontFamily: UI_BOLD, color: BAND_INK },
 
     errorBox: {
       backgroundColor: t.stopSoft,
