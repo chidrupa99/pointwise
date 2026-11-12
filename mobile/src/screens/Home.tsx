@@ -137,6 +137,7 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
             theme={theme}
             earned={wallet && !empty ? wallet.totals.value_earned_dollars : null}
             missed={wallet && !empty ? wallet.totals.missed_dollars : null}
+            cardCount={wallet?.cards.length ?? 0}
             onOpenChat={onOpenChat}
             onOpenAccount={onOpenAccount}
           />

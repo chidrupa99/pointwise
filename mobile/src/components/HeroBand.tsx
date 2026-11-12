@@ -43,6 +43,7 @@ export function HeroBand({
   theme,
   earned,
   missed,
+  cardCount,
   onOpenChat,
   onOpenAccount,
 }: {
@@ -50,6 +51,8 @@ export function HeroBand({
   /** What the cards earned. Null while the wallet is still loading. */
   earned: string | null;
   missed: string | null;
+  /** How many cards are in the wallet. One card has nothing to lose to. */
+  cardCount: number;
   onOpenChat: () => void;
   onOpenAccount: () => void;
 }) {
@@ -101,12 +104,23 @@ export function HeroBand({
                 cards that earn no points at all. */}
             <Text style={s.label}>Total rewards</Text>
             <Text style={s.value}>{money(earned)}</Text>
-            {missed !== null && (
+            {/* Three different facts, not one sentence with a zero in it.
+                Money was left; or every purchase already went on the best
+                card; or there is only one card, in which case there was
+                never an alternative and "nothing left behind" would be
+                praise for a race with one runner. */}
+            {missed !== null && Number(missed) > 0 ? (
               <Text style={s.sub}>
                 You could have had{' '}
                 <Text style={s.subStrong}>{money(missed)}</Text> more
               </Text>
-            )}
+            ) : missed !== null && cardCount > 1 ? (
+              <Text style={s.sub}>Nothing left behind</Text>
+            ) : missed !== null ? (
+              <Text style={s.sub}>
+                Add a second card and Pointwise can start comparing
+              </Text>
+            ) : null}
           </View>
         )}
       </SafeAreaView>
