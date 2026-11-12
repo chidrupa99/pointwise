@@ -11,6 +11,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -74,6 +75,9 @@ class FakePlaid:
             }
         ]
         self.sync_calls: list[str | None] = []
+
+    def institution_name(self, access_token):
+        return "First Platypus Bank"
 
     def create_sandbox_item(self, institution_id=None):
         return "public-sandbox-token-abcdef"
@@ -214,6 +218,67 @@ class TestMapping:
         assert link.card_for("acct-gold") is None
 
 
+class TestTheBankIsNamed:
+    """The connect screen's job is saying which bank is connected."""
+
+    def test_the_name_comes_from_plaid(self, linked):
+        client, _fake = linked
+        body = client.post("/api/plaid/sandbox-link").json()
+        assert body["link"]["institution_name"] == "First Platypus Bank"
+
+    def test_a_failed_lookup_does_not_fail_the_link(self, linked, monkeypatch):
+        """The name is decoration. The accounts and the history are not."""
+        client, fake = linked
+
+        def boom(access_token):
+            raise httpx.HTTPStatusError(
+                "nope", request=httpx.Request("POST", "http://x"),
+                response=httpx.Response(500),
+            )
+
+        monkeypatch.setattr(fake, "institution_name", boom)
+        body = client.post("/api/plaid/sandbox-link").json()
+        assert body["linked"] is True
+        assert body["credit_accounts"] == 1
+        assert body["link"]["institution_name"] == "Connected bank"
+
+
+class TestConnectingPullsTheHistory:
+    """Connecting a bank means "go and get my history", not "open a pipe"."""
+
+    def test_linking_pulls_without_a_separate_sync(self, linked):
+        client, _fake = linked
+        body = client.post("/api/plaid/sandbox-link").json()
+        assert body["transactions"] == 1
+        assert len(plaid_store.read_cache()) == 1
+
+    def test_an_item_with_nothing_ready_still_links(self, monkeypatch):
+        """Plaid answers a brand new item with an empty page while it prepares.
+
+        That must not read as a failed connection, and it must not be the end
+        of the attempt either -- the pull retries before handing back an
+        account with no history in it.
+        """
+        fake = FakePlaid(
+            pages=[
+                {
+                    "added": [],
+                    "modified": [],
+                    "removed": [],
+                    "next_cursor": "c0",
+                    "has_more": False,
+                }
+            ]
+        )
+        monkeypatch.setattr(routes_plaid, "PLAID", fake)
+        monkeypatch.setattr(routes_plaid, "FIRST_PULL_WAIT_SECONDS", 0)
+        client = TestClient(app)
+        body = client.post("/api/plaid/sandbox-link").json()
+        assert body["linked"] is True
+        assert body["transactions"] == 0
+        assert len(fake.sync_calls) == routes_plaid.FIRST_PULL_ATTEMPTS
+
+
 class TestSync:
     def test_sync_without_a_link_is_409(self, linked):
         client, _fake = linked
@@ -223,7 +288,7 @@ class TestSync:
         """Losing it re-reads the whole history and duplicates every row."""
         client, fake = linked
         client.post("/api/plaid/sandbox-link")
-        client.post("/api/plaid/sync")
+        # Linking pulls, so the cursor exists before anyone asks to refresh.
         assert plaid_store.read().links[0].cursor == "cursor-1"
 
         client.post("/api/plaid/sync")
@@ -265,9 +330,9 @@ class TestSync:
         fake = FakePlaid(pages=pages)
         monkeypatch.setattr(routes_plaid, "PLAID", fake)
         client = TestClient(app)
-        client.post("/api/plaid/sandbox-link")
-        body = client.post("/api/plaid/sync").json()
-        assert body["added"] == 2
+        # Paging happens inside the link now, so this is the link's own pull.
+        body = client.post("/api/plaid/sandbox-link").json()
+        assert body["transactions"] == 2
         assert {r.transaction_id for r in plaid_store.read_cache()} == {"p1", "p2"}
 
     def test_a_removed_transaction_leaves_the_cache(self):
@@ -528,3 +593,75 @@ class TestOnlyScorablePurchasesAreKept:
         ids = {r.transaction_id for r in rows}
         assert "refund" not in ids
         assert "real" in ids
+
+
+class TestMappingHoldsTheCard:
+    """Confirming an account is the user saying they carry that card.
+
+    Before, mapping only taught the scorer how to price the rows; the card
+    stayed out of the wallet unless it had also been added by hand from the
+    catalogue. Two journeys asked the same question and the user had to
+    reconcile them.
+    """
+
+    def test_mapping_an_account_puts_the_card_in_the_wallet(
+        self, linked, tmp_path, monkeypatch
+    ):
+        from pointwise import wallet
+
+        monkeypatch.setattr(wallet, "WALLET_PATH", tmp_path / "wallet.json")
+        client, _fake = linked
+        item = client.post("/api/plaid/sandbox-link").json()["link"]["item_id"]
+        assert wallet.read().entry("amex-gold") is None
+
+        client.post(
+            "/api/plaid/map",
+            json={"item_id": item, "account_id": "acct-gold", "card_id": "amex-gold"},
+        )
+        assert wallet.read().entry("amex-gold") is not None
+
+    def test_clearing_a_mapping_does_not_drop_a_card_added_by_hand(
+        self, linked, tmp_path, monkeypatch
+    ):
+        """"Not one of those" is about the account, not about the pocket.
+
+        A card can be in the wallet because the user added it from the
+        catalogue. Unmapping an account must not delete something they told
+        us separately, nor forget the open date they gave with it.
+        """
+        from pointwise import wallet
+
+        monkeypatch.setattr(wallet, "WALLET_PATH", tmp_path / "wallet.json")
+        client, _fake = linked
+        item = client.post("/api/plaid/sandbox-link").json()["link"]["item_id"]
+        wallet.add("amex-gold", date(2025, 3, 1))
+
+        client.post(
+            "/api/plaid/map",
+            json={"item_id": item, "account_id": "acct-gold", "card_id": None},
+        )
+        held = wallet.read().entry("amex-gold")
+        assert held is not None
+        assert held.opened_on == date(2025, 3, 1)
+
+    def test_mapping_keeps_an_open_date_the_user_already_gave(
+        self, linked, tmp_path, monkeypatch
+    ):
+        """A statement cannot say when an account was opened.
+
+        If the user added the card by hand with a date, linking the account
+        must not overwrite it with nothing -- that would silently drop their
+        welcome-offer tracking.
+        """
+        from pointwise import wallet
+
+        monkeypatch.setattr(wallet, "WALLET_PATH", tmp_path / "wallet.json")
+        client, _fake = linked
+        item = client.post("/api/plaid/sandbox-link").json()["link"]["item_id"]
+        wallet.add("amex-gold", date(2026, 9, 28))
+
+        client.post(
+            "/api/plaid/map",
+            json={"item_id": item, "account_id": "acct-gold", "card_id": "amex-gold"},
+        )
+        assert wallet.read().entry("amex-gold").opened_on == date(2026, 9, 28)

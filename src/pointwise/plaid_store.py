@@ -47,7 +47,10 @@ class PlaidLink(BaseModel):
 
     item_id: str
     access_token: str
-    institution_name: str = "Sandbox bank"
+    #: Plaid can name the real institution via /institutions/get_by_id, which
+    #: this build does not call. Until it does, a neutral default beats
+    #: printing the name of the test rig on the user's screen.
+    institution_name: str = "Connected bank"
     accounts: tuple[LinkedAccount, ...] = ()
     cursor: str | None = None
     linked_at: datetime = Field(default_factory=datetime.now)

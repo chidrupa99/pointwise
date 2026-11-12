@@ -1,46 +1,56 @@
 /**
  * What a new user sees first.
  *
- * Pointwise cannot say anything useful until it knows what you carry -- every
- * recommendation is a ranking of your own cards -- so this screen's whole job
- * is to make adding the first one the obvious next action, and to be straight
- * about what it does and does not connect to.
+ * Connecting is the front door, and adding by hand is the way round it. That
+ * order matters: connecting answers both questions at once -- which cards you
+ * carry, and what you have spent on them -- while the catalogue answers only
+ * the first and leaves the feed empty. Leading with the catalogue made the
+ * user add a card and then go and link it, two journeys asking the same
+ * question with the reconciling left to them.
  *
- * Three sentences, once each. An earlier version explained the ranking in the
- * body and then explained it again in the footnote, which reads as a product
- * that is nervous about itself.
+ * The fallback is not decoration. Not every issuer can be linked, and someone
+ * who would rather not connect a bank should still get ranked cards.
  */
 
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { UI, radius, space, type, type Theme } from '../theme';
+import { UI, UI_SEMI, radius, space, type, type Theme } from '../theme';
 
 export function EmptyWallet({
   theme,
+  onConnect,
   onAddCard,
 }: {
   theme: Theme;
+  onConnect: () => void;
   onAddCard: () => void;
 }) {
   const s = styles(theme);
   return (
     <View style={s.panel}>
-      <Text style={s.title}>No cards yet</Text>
+      <Text style={s.title}>Let&rsquo;s find your cards</Text>
       <Text style={s.body}>
-        Pointwise ranks the cards you actually carry, and shows the arithmetic
-        behind every answer.
+        Connect your bank and Pointwise picks up the cards you carry and what
+        you have spent on them, then shows which card should have paid.
       </Text>
       <Pressable
         accessibilityRole="button"
-        onPress={onAddCard}
+        onPress={onConnect}
         style={({ pressed }) => [s.cta, pressed && { opacity: 0.85 }]}
       >
-        <Text style={s.ctaText}>Add your first card</Text>
+        <Text style={s.ctaText}>Connect your bank</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onAddCard}
+        style={({ pressed }) => [s.alt, pressed && { opacity: 0.6 }]}
+      >
+        <Text style={s.altText}>Add a card without connecting</Text>
       </Pressable>
       <Text style={s.note}>
-        Nothing connects to your bank. You choose the card at checkout --
-        Pointwise only tells you which one earns most.
+        You sign in on your bank&rsquo;s own screen. Pointwise never sees your
+        banking password, never asks for a card number, and cannot move money.
       </Text>
     </View>
   );
@@ -67,10 +77,11 @@ const styles = (t: Theme) =>
       marginTop: space.xs,
     },
     ctaText: {
-      fontFamily: UI,
+      fontFamily: UI_SEMI,
       color: t.accentInk,
       fontSize: 16,
-      fontWeight: '600',
     },
+    alt: { alignItems: 'center', paddingVertical: space.sm },
+    altText: { ...type.label, fontFamily: UI_SEMI, color: t.accent },
     note: { ...type.small, lineHeight: 17, color: t.inkFaint },
   });

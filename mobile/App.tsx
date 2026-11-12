@@ -83,6 +83,7 @@ export default function App() {
         onOpenChat={() => setSheet('ask')}
         onOpenAccount={() => setSheet('account')}
         onAddCard={() => setSheet('addCard')}
+        onConnectIssuer={() => setSheet('issuer')}
         reloadKey={walletVersion}
       />
       )}
@@ -113,7 +114,7 @@ export default function App() {
               {sheet === 'ask'
                 ? 'Ask Pointwise'
                 : sheet === 'issuer'
-                  ? 'Connect a card issuer'
+                  ? 'Add your cards'
                   : 'Account'}
             </Text>
             <Pressable
@@ -181,7 +182,7 @@ function AccountSheet({
           onPress={onConnectIssuer}
           style={({ pressed }) => [s.accountRow, pressed && { opacity: 0.6 }]}
         >
-          <Text style={s.accountRowText}>Connect a card issuer</Text>
+          <Text style={s.accountRowText}>Connect your bank</Text>
           <Text style={s.accountRowGo}>›</Text>
         </Pressable>
         {['Notifications', 'Privacy'].map((row) => (

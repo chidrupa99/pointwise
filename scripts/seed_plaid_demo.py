@@ -114,10 +114,18 @@ def main() -> int:
         )
         return 1
 
+    # Cosmetic, so a lookup failure must not abort a reseed that otherwise
+    # worked. The screen says which bank is connected; a generic name there is
+    # a blemish, a failed reseed an hour before a demo is not.
+    try:
+        bank = client.institution_name(access_token) or "Connected bank"
+    except httpx.HTTPStatusError:
+        bank = "Connected bank"
+
     link = PlaidLink(
         item_id=tokens.get("item_id", public_token[:24]),
         access_token=access_token,
-        institution_name="Sandbox bank",
+        institution_name=bank,
         accounts=tuple(
             LinkedAccount(account_id=a.account_id, label=a.label, card_id=card_id)
             for a, card_id in zip(accounts, CARDS)

@@ -240,6 +240,24 @@ class PlaidClient:
         """
         self._post("/item/remove", {"access_token": access_token})
 
+    def institution_name(self, access_token: str) -> str | None:
+        """What Plaid calls the bank behind a linked item.
+
+        Two round trips: the item knows its institution's id, and only the
+        institutions endpoint knows the name. Worth both, because the
+        alternative is printing our own placeholder on the one screen whose
+        job is telling the user which bank is connected.
+        """
+        item = self._post("/item/get", {"access_token": access_token})
+        institution_id = (item.get("item") or {}).get("institution_id")
+        if not institution_id:
+            return None
+        body = self._post(
+            "/institutions/get_by_id",
+            {"institution_id": institution_id, "country_codes": ["US"]},
+        )
+        return (body.get("institution") or {}).get("name") or None
+
     def exchange(self, public_token: str) -> dict:
         """Swap a public token for the long-lived access token."""
         return self._post(

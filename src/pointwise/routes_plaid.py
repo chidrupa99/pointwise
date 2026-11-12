@@ -12,13 +12,14 @@ only shape that leaves this module.
 
 from __future__ import annotations
 
+import time
 from decimal import Decimal
 
 import httpx
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from . import plaid_store
+from . import plaid_store, wallet
 from .plaid import PlaidClient, PlaidNotConfigured
 from .plaid_store import CachedTransaction, LinkedAccount, PlaidLink
 from .state import BY_ID
@@ -116,20 +117,40 @@ def _link_from_public_token(public_token: str) -> dict:
     # Only credit cards are offered for mapping. A linked login usually brings
     # chequing and savings along, and neither can win a recommendation.
     cards = [a for a in accounts if a.is_credit_card]
+
+    # Cosmetic, so it must not be able to fail a good link. A connected bank
+    # with a slightly generic name beats an error on a connection that worked.
+    try:
+        name = PLAID.institution_name(access_token)
+    except (httpx.HTTPStatusError, PlaidNotConfigured, KeyError):
+        name = None
+
     link = PlaidLink(
         item_id=tokens.get("item_id", public_token[:24]),
         access_token=access_token,
+        **({"institution_name": name} if name else {}),
         accounts=tuple(
             LinkedAccount(account_id=a.account_id, label=a.label, card_id=_guess(a.label))
             for a in cards
         ),
     )
     plaid_store.upsert(link)
+
+    # Pull the statement now, as part of connecting. A bank that is linked but
+    # holds no transactions is not a thing a user can do anything with, and
+    # asking them to press "sync" afterwards is asking them to finish our job:
+    # connecting a bank means "go and get my history", not "open a pipe".
+    pulled = _pull_all(attempts=FIRST_PULL_ATTEMPTS)
+
     return {
         "linked": True,
         "link": plaid_store.redacted(link),
         "credit_accounts": len(cards),
         "other_accounts": len(accounts) - len(cards),
+        # Zero is not a failure. A brand new item answers with an empty page
+        # while Plaid prepares the feed, so the caller is told what arrived
+        # rather than being left to assume.
+        "transactions": pulled.get("transactions_cached", 0),
     }
 
 
@@ -157,57 +178,77 @@ class MapRequest(BaseModel):
 
 @router.post("/api/plaid/map")
 def map_account(req: MapRequest) -> dict:
-    """Record which card a linked account actually is."""
+    """Record which card a linked account actually is, and hold that card.
+
+    Saying "this account is my Amex Gold" is the user telling us they carry an
+    Amex Gold. Before, it only taught the scorer how to price the rows, and the
+    card itself stayed out of the wallet unless they had also added it by hand
+    from the catalogue -- two journeys asking the same question, with the user
+    left to reconcile them.
+
+    Adding only, never removing. Clearing a mapping means "this account is not
+    one of those", which is a statement about the account; the card may still
+    be in their pocket, added by hand, and dropping it would delete something
+    they told us separately.
+    """
     if req.card_id is not None and req.card_id not in BY_ID:
         raise HTTPException(status_code=404, detail=f"No card {req.card_id!r}")
     state = plaid_store.read()
     if not any(li.item_id == req.item_id for li in state.links):
         raise HTTPException(status_code=404, detail="No such linked item")
     updated = plaid_store.set_mapping(req.item_id, req.account_id, req.card_id)
+    if req.card_id is not None:
+        # No open date: the statement cannot say when the account was opened,
+        # and a guessed one would put a false welcome-offer deadline on the
+        # tile. `wallet.add` keeps any date already recorded by hand.
+        wallet.add(req.card_id)
     _reprice()
     return {"links": [plaid_store.redacted(li) for li in updated.links]}
 
 
+#: How many times a fresh link asks for the feed before giving up and letting
+#: the user pull to refresh. Plaid answers a new item with an empty page while
+#: it prepares the transactions; waiting a little beats handing back an empty
+#: account, and a long wait behind a tap is worse than either.
+FIRST_PULL_ATTEMPTS = 3
+FIRST_PULL_WAIT_SECONDS = 2.0
+
+
 @router.post("/api/plaid/sync")
 def sync() -> dict:
-    """Pull new transactions for every linked issuer."""
+    """Pull new transactions for every linked issuer.
+
+    Connecting already does this. What is left for this endpoint is refreshing
+    -- the pull-to-refresh on the activity screen, and the retry when a brand
+    new item had nothing ready yet.
+    """
     state = plaid_store.read()
     if not state.connected:
         raise HTTPException(status_code=409, detail="No issuer is linked.")
+    return _pull_all()
 
+
+def _pull_all(attempts: int = 1) -> dict:
+    """Read every linked issuer's new transactions into the cache.
+
+    `attempts` is for a just-created item only. Retrying an established link
+    cannot help: the cursor has already advanced past everything Plaid holds,
+    so the second pass is guaranteed to be empty and only costs the caller
+    time.
+    """
     added = modified = removed = skipped = 0
-    for link in state.links:
-        cursor = link.cursor
-        # Plaid pages; keep going until it says there is no more. The cursor is
-        # persisted each round so an interruption resumes rather than restarts.
-        while True:
-            try:
-                page = PLAID.sync(link.access_token, cursor)
-            except PlaidNotConfigured as exc:
-                raise HTTPException(status_code=503, detail=str(exc)) from exc
-            except httpx.HTTPStatusError as exc:
-                raise HTTPException(
-                    status_code=502, detail=f"Plaid sync failed: {exc.response.text}"
-                ) from exc
-
-            tracked = {a.account_id for a in link.accounts}
-            keep_added = [t for t in page["added"] if _is_scorable(t, tracked)]
-            keep_modified = [t for t in page["modified"] if _is_scorable(t, tracked)]
-            plaid_store.merge_cache(
-                [_cache_row(t, link) for t in keep_added],
-                [_cache_row(t, link) for t in keep_modified],
-                page["removed"],
-            )
-            added += len(keep_added)
-            modified += len(keep_modified)
-            removed += len(page["removed"])
-            skipped += (len(page["added"]) - len(keep_added)) + (
-                len(page["modified"]) - len(keep_modified)
-            )
-            cursor = page["next_cursor"]
-            plaid_store.set_cursor(link.item_id, cursor)
-            if not page["has_more"]:
-                break
+    for attempt in range(attempts):
+        if attempt:
+            time.sleep(FIRST_PULL_WAIT_SECONDS)
+        # Re-read: the cursor moved in the previous attempt.
+        for link in plaid_store.read().links:
+            counts = _pull_link(link)
+            added += counts["added"]
+            modified += counts["modified"]
+            removed += counts["removed"]
+            skipped += counts["skipped"]
+        if added:
+            break
 
     cache = plaid_store.read_cache()
     return {
@@ -220,6 +261,48 @@ def sync() -> dict:
         "skipped": skipped,
         "transactions_cached": len(cache),
         "unmapped": sum(1 for r in cache if r.card_id is None),
+    }
+
+
+def _pull_link(link: PlaidLink) -> dict:
+    """One issuer's pages, from its stored cursor to the end of the feed."""
+    added = modified = removed = skipped = 0
+    cursor = link.cursor
+    tracked = {a.account_id for a in link.accounts}
+    # Plaid pages; keep going until it says there is no more. The cursor is
+    # persisted each round so an interruption resumes rather than restarts.
+    while True:
+        try:
+            page = PLAID.sync(link.access_token, cursor)
+        except PlaidNotConfigured as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        except httpx.HTTPStatusError as exc:
+            raise HTTPException(
+                status_code=502, detail=f"Plaid sync failed: {exc.response.text}"
+            ) from exc
+
+        keep_added = [t for t in page["added"] if _is_scorable(t, tracked)]
+        keep_modified = [t for t in page["modified"] if _is_scorable(t, tracked)]
+        plaid_store.merge_cache(
+            [_cache_row(t, link) for t in keep_added],
+            [_cache_row(t, link) for t in keep_modified],
+            page["removed"],
+        )
+        added += len(keep_added)
+        modified += len(keep_modified)
+        removed += len(page["removed"])
+        skipped += (len(page["added"]) - len(keep_added)) + (
+            len(page["modified"]) - len(keep_modified)
+        )
+        cursor = page["next_cursor"]
+        plaid_store.set_cursor(link.item_id, cursor)
+        if not page["has_more"]:
+            break
+    return {
+        "added": added,
+        "modified": modified,
+        "removed": removed,
+        "skipped": skipped,
     }
 
 

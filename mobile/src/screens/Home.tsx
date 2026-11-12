@@ -59,11 +59,19 @@ interface Props {
   onOpenChat: () => void;
   onOpenAccount: () => void;
   onAddCard: () => void;
+  /** Opens the connect flow straight from the empty state. */
+  onConnectIssuer: () => void;
   /** Bumped by the parent after a card is added, to force a refetch. */
   reloadKey?: number;
 }
 
-export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props) {
+export function Home({
+  onOpenChat,
+  onOpenAccount,
+  onAddCard,
+  onConnectIssuer,
+  reloadKey,
+}: Props) {
   const theme: Theme = useColorScheme() === 'light' ? light : dark;
   const s = styles(theme);
 
@@ -163,7 +171,13 @@ export function Home({ onOpenChat, onOpenAccount, onAddCard, reloadKey }: Props)
             <ActivityIndicator style={s.spinner} color={theme.inkFaint} />
           )}
 
-          {empty && <EmptyWallet theme={theme} onAddCard={onAddCard} />}
+          {empty && (
+            <EmptyWallet
+              theme={theme}
+              onConnect={onConnectIssuer}
+              onAddCard={onAddCard}
+            />
+          )}
 
           {wallet && !empty && (
             <>

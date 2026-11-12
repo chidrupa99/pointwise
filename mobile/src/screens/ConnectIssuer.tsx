@@ -87,9 +87,9 @@ export function ConnectIssuer({ onChanged }: Props) {
     <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={s.scroll}>
         <Text style={s.lead}>
-          Linking an issuer lets Pointwise read the card&rsquo;s own
-          statement. However you paid &mdash; tapped, typed, or through PayPal
-          &mdash; it lands on the card, and the card is what gets scored.
+          However you paid &mdash; tapped, typed, or through PayPal &mdash;
+          it lands on the card. Pointwise reads the card&rsquo;s own statement,
+          so nothing you buy goes unscored.
         </Text>
 
         {!status && !error && (
@@ -98,8 +98,11 @@ export function ConnectIssuer({ onChanged }: Props) {
 
         {status && !status.configured && (
           <View style={s.notice}>
-            <Text style={s.noticeTitle}>Plaid is not configured</Text>
-            <Text style={s.noticeBody}>{status.hint}</Text>
+            <Text style={s.noticeTitle}>Connecting is unavailable</Text>
+            <Text style={s.noticeBody}>
+              Add your cards by hand for now — Pointwise can still rank them,
+              it just will not see what you spend.
+            </Text>
           </View>
         )}
 
@@ -110,7 +113,11 @@ export function ConnectIssuer({ onChanged }: Props) {
               accessibilityRole="button"
               disabled={busy !== null || !status.sandbox_shortcut_available}
               onPress={() =>
-                run('link', linkSandboxIssuer, 'Linked. Now pull transactions.')
+                run(
+                  'link',
+                  linkSandboxIssuer,
+                  'Connected. Tell us which card each account is and Pointwise will price your history.',
+                )
               }
               style={({ pressed }) => [
                 s.cta,
@@ -119,13 +126,12 @@ export function ConnectIssuer({ onChanged }: Props) {
               ]}
             >
               <Text style={s.ctaText}>
-                {busy === 'link' ? 'Linking…' : 'Connect the sandbox bank'}
+                {busy === 'link' ? 'Connecting…' : 'Connect your bank'}
               </Text>
             </Pressable>
             <Text style={s.fine}>
-              Plaid&rsquo;s test institution. No real bank, no login, no money
-              — it arrives with credit card accounts and a month of
-              transactions already attached.
+              You sign in to your bank on their own screen. Pointwise never
+              sees your banking password, and never asks for a card number.
             </Text>
           </>
         )}
@@ -135,8 +141,7 @@ export function ConnectIssuer({ onChanged }: Props) {
           <View style={s.block}>
             <Text style={s.blockTitle}>{link.institution_name}</Text>
             <Text style={s.blockMeta}>
-              Linked {link.linked_at.slice(0, 10)} · credentials never leave
-              the server
+              Connected {link.linked_at.slice(0, 10)}
             </Text>
 
             {link.accounts.length === 0 && (
@@ -211,28 +216,29 @@ export function ConnectIssuer({ onChanged }: Props) {
           </View>
         )}
 
-        {/* Step 3 — pull */}
+        {/* Connecting already pulled the statement. What is left here is a
+            retry for the case where Plaid had nothing ready yet, which is why
+            it is a quiet link and not the third step of a wizard. */}
         {status?.connected && (
           <>
-            <Pressable
-              accessibilityRole="button"
-              disabled={busy !== null}
-              onPress={() => run('sync', syncIssuers, 'Transactions pulled.')}
-              style={({ pressed }) => [
-                s.cta,
-                busy !== null && s.ctaOff,
-                pressed && { opacity: 0.8 },
-              ]}
-            >
-              <Text style={s.ctaText}>
-                {busy === 'sync' ? 'Syncing…' : 'Sync now'}
-              </Text>
-            </Pressable>
-
             <View style={s.stats}>
-              <Text style={s.stat}>
-                {status.transactions_cached} transactions synced
-              </Text>
+              <View style={s.statRow}>
+                <Text style={s.stat}>
+                  {status.transactions_cached === 0
+                    ? 'No transactions yet'
+                    : `${status.transactions_cached} transactions`}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={busy !== null}
+                  onPress={() => run('sync', syncIssuers)}
+                  hitSlop={8}
+                >
+                  <Text style={[s.refresh, busy !== null && s.refreshOff]}>
+                    {busy === 'sync' ? 'Checking…' : 'Check for new'}
+                  </Text>
+                </Pressable>
+              </View>
               {status.unmapped_accounts > 0 && (
                 <Text style={s.statWarn}>
                   {status.unmapped_accounts} account
@@ -250,7 +256,7 @@ export function ConnectIssuer({ onChanged }: Props) {
               }
               style={({ pressed }) => [s.danger, pressed && { opacity: 0.6 }]}
             >
-              <Text style={s.dangerText}>Disconnect and forget this issuer</Text>
+              <Text style={s.dangerText}>Disconnect this bank</Text>
             </Pressable>
           </>
         )}
@@ -267,6 +273,13 @@ const styles = (t: Theme) =>
     safe: { flex: 1 },
     scroll: { padding: space.lg, paddingBottom: space.xxxl, gap: space.md },
     lead: { fontFamily: UI, fontSize: 14.5, lineHeight: 21, color: t.inkSoft },
+    statRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    refresh: { fontFamily: UI, fontSize: 12.5, color: t.accent },
+    refreshOff: { color: t.inkFaint },
     spinner: { marginTop: space.xl },
 
     notice: {
