@@ -125,6 +125,13 @@ export function Home({
   );
   const shown = showAll ? inPeriod : inPeriod.slice(0, PREVIEW_ROWS);
   const empty = wallet?.is_empty ?? false;
+
+  // The card the rail is showing, which is what the prompt under it refers
+  // to. Keyed to the visible card rather than the filtered one: a user who
+  // swipes to a card we cannot see should be told so without having to tap
+  // it first. The rail ends with the "Add a card" tile, so this can be
+  // undefined at the last index.
+  const railCard = wallet?.cards[cardIndex] ?? null;
   const filtered = wallet?.cards.find((c) => c.card_id === filter);
 
   return (
@@ -231,6 +238,29 @@ export function Home({
                   />
                 ))}
               </View>
+
+              {/* The tile states the gap; this is how it gets closed. Naming
+                  the issuer matters -- "connect your bank" leaves the user
+                  guessing which of theirs, and the one that can fix this is
+                  the one that issued the card they are looking at. */}
+              {railCard && !railCard.statement_linked && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Connect ${railCard.issuer} to read ${railCard.name} statements`}
+                  onPress={onConnectIssuer}
+                  style={({ pressed }) => [s.hint, pressed && { opacity: 0.7 }]}
+                >
+                  {/* The action gets its own line: inline, "Connect Citi"
+                      wrapped mid-phrase at this width, which makes the one
+                      tappable part of the sentence the easiest to miss. */}
+                  <Text style={s.hintText}>
+                    Pointwise isn&rsquo;t reading this card&rsquo;s statement.
+                  </Text>
+                  <Text style={s.hintLink}>
+                    Connect {railCard.issuer} &rarr;
+                  </Text>
+                </Pressable>
+              )}
             </>
           )}
 
@@ -338,6 +368,23 @@ const styles = (t: Theme) =>
 
 
 
+    hint: {
+      marginHorizontal: space.lg,
+      marginTop: space.xs,
+      backgroundColor: t.surface,
+      borderWidth: 1,
+      borderColor: t.ruleSoft,
+      borderRadius: radius.md,
+      paddingVertical: space.md,
+      paddingHorizontal: space.md,
+    },
+    hintText: { ...type.small, lineHeight: 18, color: t.inkSoft },
+    hintLink: {
+      fontFamily: UI_SEMI,
+      fontSize: 13,
+      color: t.accent,
+      marginTop: space.xs,
+    },
     errorBox: {
       backgroundColor: t.stopSoft,
       borderRadius: radius.md,
