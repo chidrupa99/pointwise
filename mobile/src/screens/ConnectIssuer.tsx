@@ -49,6 +49,8 @@ export function ConnectIssuer({ onChanged }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  //: Backing out of Link is not a success, and the note style is green.
+  const [noteIsGood, setNoteIsGood] = useState(true);
   const [picking, setPicking] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -72,7 +74,10 @@ export function ConnectIssuer({ onChanged }: Props) {
       setNote(null);
       try {
         await fn();
-        if (after) setNote(after);
+        if (after) {
+          setNoteIsGood(true);
+          setNote(after);
+        }
         await refresh();
         onChanged();
       } catch (e) {
@@ -108,12 +113,14 @@ export function ConnectIssuer({ onChanged }: Props) {
       await WebBrowser.openAuthSessionAsync(hosted_link_url);
       const done = await completeLink(link_token);
       if (done.linked) {
+        setNoteIsGood(true);
         setNote(
           'Connected. Tell us which card each account is and Pointwise will price your history.',
         );
         await refresh();
         onChanged();
       } else {
+        setNoteIsGood(false);
         setNote('Nothing was connected.');
       }
     } catch (e) {
@@ -333,7 +340,9 @@ export function ConnectIssuer({ onChanged }: Props) {
           </>
         )}
 
-        {note && <Text style={s.note}>{note}</Text>}
+        {note && (
+          <Text style={[s.note, !noteIsGood && s.noteFlat]}>{note}</Text>
+        )}
         {error && <Text style={s.error}>{error}</Text>}
       </ScrollView>
     </SafeAreaView>
@@ -417,6 +426,7 @@ const styles = (t: Theme) =>
     danger: { alignItems: 'center', paddingVertical: space.md },
     dangerText: { color: t.stop, fontFamily: UI, fontSize: 14 },
 
+    noteFlat: { color: t.inkFaint },
     note: { fontFamily: UI, fontSize: 13, color: t.ok, fontWeight: '600' },
     error: { fontFamily: UI, fontSize: 13, color: t.stop },
   });

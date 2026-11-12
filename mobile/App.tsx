@@ -22,7 +22,6 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { AddCard } from './src/screens/AddCard';
-import { Pay } from './src/screens/Pay';
 import { Chat } from './src/screens/Chat';
 import { ConnectIssuer } from './src/screens/ConnectIssuer';
 import { SignIn } from './src/screens/SignIn';
@@ -30,7 +29,7 @@ import { Home } from './src/screens/Home';
 import { fetchAuthStatus, signOut, type AuthStatus } from './src/auth';
 import { dark, light, type Theme } from './src/theme';
 
-type Sheet = null | 'ask' | 'account' | 'addCard' | 'issuer' | 'pay';
+type Sheet = null | 'ask' | 'account' | 'addCard' | 'issuer';
 
 export default function App() {
   const scheme = useColorScheme();
@@ -85,39 +84,9 @@ export default function App() {
         onOpenAccount={() => setSheet('account')}
         onAddCard={() => setSheet('addCard')}
         onConnectIssuer={() => setSheet('issuer')}
-        onOpenPay={() => setSheet('pay')}
         reloadKey={walletVersion}
       />
       )}
-
-      <Modal
-        visible={sheet === 'pay'}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setSheet(null)}
-      >
-        <View style={s.sheet}>
-          <View style={s.sheetBar}>
-            <Text style={s.sheetTitle}>Pay</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Close"
-              onPress={() => setSheet(null)}
-              style={({ pressed }) => [s.close, pressed && { opacity: 0.6 }]}
-            >
-              <Text style={s.closeText}>Done</Text>
-            </Pressable>
-          </View>
-          <Pay
-            onDone={(paid) => {
-              // A capture writes a scored row, so the wallet and the feed are
-              // both stale the moment this closes.
-              if (paid) setWalletVersion((v) => v + 1);
-              setSheet(null);
-            }}
-          />
-        </View>
-      </Modal>
 
       <Modal
         visible={sheet === 'addCard'}
