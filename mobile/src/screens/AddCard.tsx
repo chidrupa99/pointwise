@@ -28,12 +28,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   addCard,
   fetchCatalog,
+  fetchWallet,
   type CatalogCard,
 } from '../wallet';
 import {
   MONO,
   MONO_MED,
   UI,
+  UI_SEMI,
   cardFinish,
   dark,
   light,
@@ -44,6 +46,8 @@ import {
 
 interface Props {
   onDone: (added: boolean) => void;
+  /** Hand off to the bank connection, carrying the add that just happened. */
+  onConnect: () => void;
 }
 
 /** Recent months, newest first — the window that matters for a welcome offer. */
@@ -63,7 +67,7 @@ function recentMonths(count: number): { label: string; iso: string }[] {
   return out;
 }
 
-export function AddCard({ onDone }: Props) {
+export function AddCard({ onDone, onConnect }: Props) {
   const theme: Theme = useColorScheme() === 'light' ? light : dark;
   const s = styles(theme);
 
@@ -71,6 +75,8 @@ export function AddCard({ onDone }: Props) {
   const [chosen, setChosen] = useState<CatalogCard | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Set once a card is added that no connected bank covers. */
+  const [orphan, setOrphan] = useState<CatalogCard | null>(null);
 
   useEffect(() => {
     fetchCatalog()
@@ -85,7 +91,27 @@ export function AddCard({ onDone }: Props) {
       setError(null);
       try {
         await addCard(chosen.card_id, openedOn);
-        onDone(true);
+        // Naming a card tells us what the user carries. It does not give us
+        // their spending on it, and the tile that follows would otherwise sit
+        // at zero with no account of itself. If a connected bank already
+        // covers the card there is nothing to ask for, so this only appears
+        // when it genuinely needs connecting.
+        let covered = false;
+        try {
+          const w = await fetchWallet();
+          covered =
+            w.cards.find((c) => c.card_id === chosen.card_id)?.statement_linked ??
+            false;
+        } catch {
+          // A failed check is not a reason to block the add. Offering the
+          // connection costs the user one tap to decline.
+        }
+        if (covered) {
+          onDone(true);
+        } else {
+          setOrphan(chosen);
+          setBusy(false);
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
         setBusy(false);
@@ -93,6 +119,36 @@ export function AddCard({ onDone }: Props) {
     },
     [chosen, onDone],
   );
+
+  // Added, but nothing is reading its statement.
+  if (orphan) {
+    return (
+      <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
+        <View style={s.done}>
+          <Text style={s.title}>{orphan.name} added</Text>
+          <Text style={s.doneBody}>
+            Pointwise cannot see what you spend on it yet. Connect the bank
+            that issues it and the card&rsquo;s own statement fills in on its
+            own &mdash; past purchases included.
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onConnect}
+            style={({ pressed }) => [s.cta, pressed && { opacity: 0.85 }]}
+          >
+            <Text style={s.ctaText}>Connect your bank</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => onDone(true)}
+            style={({ pressed }) => [s.later, pressed && { opacity: 0.6 }]}
+          >
+            <Text style={s.laterText}>Not now</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   // Step two: when did you open it?
   if (chosen) {
@@ -304,5 +360,17 @@ const styles = (t: Theme) =>
 
     skip: { paddingVertical: space.md, alignItems: 'center' },
     skipText: { fontFamily: UI, fontSize: 14, color: t.accent },
+    cta: {
+      backgroundColor: t.accent,
+      borderRadius: radius.md,
+      paddingVertical: space.lg,
+      alignItems: 'center',
+      marginTop: space.sm,
+    },
+    ctaText: { fontFamily: UI_SEMI, color: t.accentInk, fontSize: 16 },
+    done: { padding: space.lg, gap: space.md, paddingTop: space.xxl },
+    doneBody: { fontFamily: UI, fontSize: 14.5, lineHeight: 21, color: t.inkSoft },
+    later: { alignItems: 'center', paddingVertical: space.sm },
+    laterText: { fontFamily: UI, fontSize: 14, color: t.inkFaint },
     error: { fontFamily: UI, fontSize: 13, color: t.stop, marginTop: space.sm },
   });

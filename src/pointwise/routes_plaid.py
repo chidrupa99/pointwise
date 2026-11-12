@@ -367,18 +367,35 @@ def _reprice() -> None:
 
 @router.delete("/api/plaid/link/{item_id}")
 def remove_link(item_id: str) -> dict:
-    """Forget an issuer and drop its cached transactions."""
+    """Disconnect a bank: revoke at Plaid, then drop everything local.
+
+    Revoking first is the point. Deleting our own copy while the access token
+    stays live at Plaid is not disconnecting, it is losing the receipt -- the
+    consent keeps standing and we no longer hold the one credential that could
+    withdraw it.
+
+    If Plaid refuses, the local data still goes. The user asked to be
+    disconnected, and keeping their transactions to preserve our ability to
+    retry would be serving ourselves. What we can do is say so plainly, which
+    is what `revoked` is for.
+    """
     state = plaid_store.read()
-    if not any(li.item_id == item_id for li in state.links):
+    link = next((li for li in state.links if li.item_id == item_id), None)
+    if link is None:
         raise HTTPException(status_code=404, detail="No such linked item")
-    accounts = {
-        a.account_id for li in state.links if li.item_id == item_id for a in li.accounts
-    }
+
+    revoked = True
+    try:
+        PLAID.remove_item(link.access_token)
+    except (PlaidNotConfigured, httpx.HTTPStatusError):
+        revoked = False
+
+    accounts = {a.account_id for a in link.accounts}
     plaid_store.unlink(item_id)
     plaid_store.write_cache(
         [r for r in plaid_store.read_cache() if r.account_id not in accounts]
     )
-    return {"unlinked": item_id}
+    return {"unlinked": item_id, "revoked": revoked}
 
 
 #: Exposed for the activity feed, which must not import a router.

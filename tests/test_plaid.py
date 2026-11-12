@@ -75,9 +75,13 @@ class FakePlaid:
             }
         ]
         self.sync_calls: list[str | None] = []
+        self.removed: list[str] = []
 
     def institution_name(self, access_token):
         return "First Platypus Bank"
+
+    def remove_item(self, access_token):
+        self.removed.append(access_token)
 
     def create_sandbox_item(self, institution_id=None):
         return "public-sandbox-token-abcdef"
@@ -216,6 +220,38 @@ class TestMapping:
         )
         link = plaid_store.read().links[0]
         assert link.card_for("acct-gold") is None
+
+
+class TestDisconnecting:
+    """Dropping our copy while the token stays live is not disconnecting."""
+
+    def test_the_token_is_revoked_at_plaid(self, linked):
+        client, fake = linked
+        item = client.post("/api/plaid/sandbox-link").json()["link"]["item_id"]
+        body = client.delete(f"/api/plaid/link/{item}").json()
+        assert fake.removed == ["access-sandbox-SECRET"]
+        assert body["revoked"] is True
+        assert plaid_store.read().connected is False
+        assert plaid_store.read_cache() == []
+
+    def test_a_refused_revoke_still_deletes_our_copy(self, linked, monkeypatch):
+        """The user asked to be disconnected. Keeping their transactions so we
+        could retry later would be serving ourselves, not them."""
+        client, fake = linked
+        item = client.post("/api/plaid/sandbox-link").json()["link"]["item_id"]
+
+        def boom(access_token):
+            raise httpx.HTTPStatusError(
+                "nope", request=httpx.Request("POST", "http://x"),
+                response=httpx.Response(400),
+            )
+
+        monkeypatch.setattr(fake, "remove_item", boom)
+        body = client.delete(f"/api/plaid/link/{item}").json()
+        # Said plainly rather than reported as a clean disconnection.
+        assert body["revoked"] is False
+        assert plaid_store.read().connected is False
+        assert plaid_store.read_cache() == []
 
 
 class TestTheBankIsNamed:

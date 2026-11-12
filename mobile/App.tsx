@@ -99,6 +99,12 @@ export default function App() {
             if (added) setWalletVersion((v) => v + 1);
             setSheet(null);
           }}
+          // The card is already saved by this point, so the wallet needs
+          // refreshing whichever way the connection goes.
+          onConnect={() => {
+            setWalletVersion((v) => v + 1);
+            setSheet('issuer');
+          }}
         />
       </Modal>
 

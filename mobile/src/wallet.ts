@@ -31,6 +31,13 @@ export interface WalletCard {
   missed_dollars: string;
   missed_points: string;
   transaction_count: number;
+  /**
+   * Whether Pointwise is reading this card's own statement. False means the
+   * card was named from the catalogue but no connected bank account maps to
+   * it, so its figures cover only what the app itself watched -- which is
+   * usually nothing.
+   */
+  statement_linked: boolean;
   opened_on: string | null;
   signup_bonus: SignupBonus | null;
 }

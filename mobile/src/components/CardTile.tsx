@@ -82,7 +82,14 @@ export function CardTile({
             <Text style={s.earned}>{inCardUnit(card, 'earned')}</Text>
             <Text style={s.unit}>{unitLabel(card.reward_unit)}</Text>
           </View>
-          {missed ? (
+          {!card.statement_linked ? (
+            // Neither figure means what it looks like on an unconnected card:
+            // the earned total covers only what the app watched, and "nothing
+            // left behind" would claim we had checked. Say what is missing.
+            <Text style={[s.clean, { color: finish.onSoft }]} numberOfLines={1}>
+              Statement not connected
+            </Text>
+          ) : missed ? (
             <Text style={[s.missed, { color: finish.onWarn }]} numberOfLines={1}>
               {missedPhrase(card)}
             </Text>

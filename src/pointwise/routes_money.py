@@ -14,7 +14,7 @@ from .categories import confidence_of, resolve_category
 from .models import Card, Purchase
 from .recommend import recommend
 from .state import BY_ID, CATALOG, PAYPAL, activity_feed, build_states, my_cards
-from . import funding, ledger, wallet
+from . import funding, ledger, plaid_store, wallet
 from .paypal import PayPalNotConfigured
 
 router = APIRouter()
@@ -141,6 +141,18 @@ def get_wallet() -> dict:
         if row.card_id:
             spend.setdefault(row.card_id, []).append((row.on, row.amount))
 
+    # Which cards Pointwise is actually reading a statement for. A card added
+    # from the catalogue is the user telling us what they carry; it does not
+    # give us their spending on it, and a tile that shows zero without saying
+    # why reads as "this card earned you nothing" rather than "we cannot see
+    # this card".
+    reading = {
+        a.card_id
+        for li in plaid_store.read().links
+        for a in li.accounts
+        if a.card_id
+    }
+
     return {
         "source": source,
         "is_demo_data": source == "fixture",
@@ -161,6 +173,7 @@ def get_wallet() -> dict:
                 "missed_dollars": str(w.missed_dollars),
                 "missed_points": str(w.missed_points),
                 "transaction_count": w.transaction_count,
+                "statement_linked": w.card_id in reading,
                 "opened_on": (
                     o.opened_on.isoformat()
                     if (o := held.entry(w.card_id)) and o.opened_on
@@ -217,6 +230,18 @@ def get_activity(card_id: str | None = None, limit: int = 100) -> dict:
     scored = score_all(raws, my_cards())
     if card_id:
         scored = [a for a in scored if a.card_id == card_id]
+
+    # Which cards Pointwise is actually reading a statement for. A card added
+    # from the catalogue is the user telling us what they carry; it does not
+    # give us their spending on it, and a tile that shows zero without saying
+    # why reads as "this card earned you nothing" rather than "we cannot see
+    # this card".
+    reading = {
+        a.card_id
+        for li in plaid_store.read().links
+        for a in li.accounts
+        if a.card_id
+    }
 
     return {
         "source": source,
