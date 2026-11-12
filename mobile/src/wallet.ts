@@ -38,6 +38,12 @@ export interface WalletCard {
    * usually nothing.
    */
   statement_linked: boolean;
+  /**
+   * Whether some other card at this issuer is already on a connection. True
+   * with statement_linked false means the bank is connected and simply did
+   * not return this account -- a different gap, and a different remedy.
+   */
+  issuer_connected: boolean;
   opened_on: string | null;
   signup_bonus: SignupBonus | null;
 }

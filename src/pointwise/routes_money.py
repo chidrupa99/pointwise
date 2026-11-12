@@ -153,6 +153,17 @@ def get_wallet() -> dict:
         if a.card_id
     }
 
+    # Which issuers already have a connection. Derived from the cards mapped
+    # on those connections rather than by matching the institution's name,
+    # because the two are not the same string -- Plaid says "Citibank Online"
+    # where the corpus says "Citi", and a card would silently look
+    # unconnected.
+    #
+    # It matters because "Connect" is the wrong word for a card whose bank is
+    # already connected: the connection exists and simply did not return this
+    # account.
+    connected_issuers = {BY_ID[c].issuer for c in reading if c in BY_ID}
+
     return {
         "source": source,
         "is_demo_data": source == "fixture",
@@ -174,6 +185,7 @@ def get_wallet() -> dict:
                 "missed_points": str(w.missed_points),
                 "transaction_count": w.transaction_count,
                 "statement_linked": w.card_id in reading,
+                "issuer_connected": w.issuer in connected_issuers,
                 "opened_on": (
                     o.opened_on.isoformat()
                     if (o := held.entry(w.card_id)) and o.opened_on
@@ -242,6 +254,17 @@ def get_activity(card_id: str | None = None, limit: int = 100) -> dict:
         for a in li.accounts
         if a.card_id
     }
+
+    # Which issuers already have a connection. Derived from the cards mapped
+    # on those connections rather than by matching the institution's name,
+    # because the two are not the same string -- Plaid says "Citibank Online"
+    # where the corpus says "Citi", and a card would silently look
+    # unconnected.
+    #
+    # It matters because "Connect" is the wrong word for a card whose bank is
+    # already connected: the connection exists and simply did not return this
+    # account.
+    connected_issuers = {BY_ID[c].issuer for c in reading if c in BY_ID}
 
     return {
         "source": source,

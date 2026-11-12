@@ -88,9 +88,14 @@ export function CardTile({
           {!card.statement_linked ? (
             // Neither figure means what it looks like on an unconnected card:
             // the earned total covers only what the app watched, and "nothing
-            // left behind" would claim we had checked. Say what is missing.
+            // left behind" would claim we had checked. Say what is missing --
+            // and which of the two gaps it is, because they are not fixed the
+            // same way. An unconnected bank needs connecting; a connected one
+            // that did not hand us this account needs looking at.
             <Text style={[s.clean, { color: finish.onSoft }]} numberOfLines={1}>
-              Statement not connected
+              {card.issuer_connected
+                ? 'Connected, but not this card'
+                : 'Statement not connected'}
             </Text>
           ) : missed ? (
             <Text style={[s.missed, { color: finish.onWarn }]} numberOfLines={1}>
@@ -124,7 +129,11 @@ export function CardTile({
         {!card.statement_linked ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Connect ${card.issuer} to read ${card.name} statements`}
+            accessibilityLabel={
+              card.issuer_connected
+                ? `${card.issuer} is connected but did not return ${card.name}. Review the connection.`
+                : `Connect ${card.issuer} to read ${card.name} statements`
+            }
             onPress={onConnect}
             hitSlop={6}
             style={({ pressed }) => [
@@ -134,7 +143,7 @@ export function CardTile({
             ]}
           >
             <Text style={[s.connectText, { color: finish.on }]}>
-              Connect &rarr;
+              {card.issuer_connected ? 'Review' : 'Connect'} &rarr;
             </Text>
           </Pressable>
         ) : (
