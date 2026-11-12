@@ -249,7 +249,6 @@ export function LocationBanner({ theme }: Props) {
           </View>
         )}
 
-        {state.demo && <Text style={s.demo}>demo place data</Text>}
       </View>
     );
   }
@@ -277,7 +276,6 @@ export function LocationBanner({ theme }: Props) {
       >
         <Text style={s.againText}>Check again</Text>
       </Pressable>
-      {state.demo && <Text style={s.demo}>demo place data</Text>}
     </View>
   );
 }
@@ -368,5 +366,4 @@ const styles = (t: Theme) =>
 
     again: { alignSelf: 'flex-start', marginTop: 11 },
     againText: { color: t.accent, fontSize: 13, fontWeight: '600' },
-    demo: { fontFamily: MONO, fontSize: 9.5, color: t.inkFaint, marginTop: 9 },
   });
